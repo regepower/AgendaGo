@@ -1,3 +1,5 @@
+import java.security.KeyStore
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -23,7 +25,7 @@ android {
         val storePw = System.getenv("KEYSTORE_PASSWORD").orEmpty()
         val alias =
             System.getenv("KEY_ALIAS")?.takeIf { it.isNotBlank() }
-                ?: java.security.KeyStore.getInstance(java.security.KeyStore.getDefaultType()).run {
+                ?: KeyStore.getInstance(KeyStore.getDefaultType()).run {
                     file(keystorePath).inputStream().use { load(it, storePw.toCharArray()) }
                     aliases().nextElement()
                 }
