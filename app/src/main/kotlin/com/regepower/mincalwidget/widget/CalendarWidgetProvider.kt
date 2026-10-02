@@ -12,6 +12,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.provider.CalendarContract
+import android.provider.ContactsContract
+import com.regepower.mincalwidget.data.Birthdays
 import com.regepower.mincalwidget.data.WidgetPrefs
 import java.time.LocalDate
 import java.time.ZoneId
@@ -102,7 +104,7 @@ object WidgetUpdater {
 /**
  * Two triggers, no polling:
  * - an inexact, non-wakeup alarm at the next midnight / next event end,
- * - a JobScheduler content trigger that fires when any calendar data changes.
+ * - a JobScheduler content trigger that fires when calendar data (or contacts) change.
  */
 object RefreshScheduler {
     private const val JOB_ID = 1
@@ -114,24 +116,22 @@ object RefreshScheduler {
         context.getSystemService(AlarmManager::class.java)?.set(AlarmManager.RTC, atMillis, alarmIntent(context))
     }
 
+    /** Re-arms the change trigger; also when contacts access was granted since the last arming. */
     fun armJob(
         context: Context,
         force: Boolean,
     ) {
         val jobs = context.getSystemService(JobScheduler::class.java) ?: return
-        if (!force && jobs.getPendingJob(JOB_ID) != null) return
-        val job =
-            JobInfo
-                .Builder(JOB_ID, ComponentName(context, CalendarChangeJob::class.java))
-                .addTriggerContentUri(
-                    JobInfo.TriggerContentUri(
-                        CalendarContract.CONTENT_URI,
-                        JobInfo.TriggerContentUri.FLAG_NOTIFY_FOR_DESCENDANTS,
-                    ),
-                ).setTriggerContentUpdateDelay(1_000)
-                .setTriggerContentMaxDelay(10_000)
-                .build()
-        jobs.schedule(job)
+        val uris = mutableListOf(CalendarContract.CONTENT_URI)
+        // Birthdays: redraw when contacts change (only if access was granted).
+        if (Birthdays.permitted(context)) uris += ContactsContract.Contacts.CONTENT_URI
+        val pending = jobs.getPendingJob(JOB_ID)
+        if (!force && pending != null && pending.triggerContentUris?.size == uris.size) return
+        val builder = JobInfo.Builder(JOB_ID, ComponentName(context, CalendarChangeJob::class.java))
+        for (uri in uris) {
+            builder.addTriggerContentUri(JobInfo.TriggerContentUri(uri, JobInfo.TriggerContentUri.FLAG_NOTIFY_FOR_DESCENDANTS))
+        }
+        jobs.schedule(builder.setTriggerContentUpdateDelay(1_000).setTriggerContentMaxDelay(10_000).build())
     }
 
     fun cancel(context: Context) {

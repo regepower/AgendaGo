@@ -22,6 +22,8 @@
     <string name="section_display">Anzeige</string>
     <string name="label_events">Anzahl Ereignisse</string>
     <string name="label_days">Anzahl Tage</string>
+    <string name="show_birthdays">Geburtstage aus Kontakten</string>
+    <string name="help_birthdays">Zeigt die nächsten Geburtstage deiner Kontakte, mit Alter, wenn das Jahr bekannt ist. Benötigt Zugriff auf die Kontakte.</string>
     <string name="show_location">Ort anzeigen</string>
 
     <string name="section_appearance">Darstellung</string>

@@ -30,6 +30,7 @@ data class WidgetPrefs(
     val font: FontStyle = FontStyle.SANS,
     val fontSizeSp: Int = 14,
     val dateWidthDp: Int = 52,
+    val birthdays: Boolean = false,
 ) {
     companion object {
         val EVENTS = 1..50
@@ -62,6 +63,7 @@ data class WidgetPrefs(
                 font = FontStyle.entries.firstOrNull { it.name == sp.getString(p + "font", null) } ?: d.font,
                 fontSizeSp = sp.getInt(p + "size", d.fontSizeSp).coerceIn(FONT_SIZE),
                 dateWidthDp = sp.getInt(p + "daywidth", d.dateWidthDp).coerceIn(DATE_WIDTH),
+                birthdays = sp.getBoolean(p + "birthdays", d.birthdays),
             )
         }
 
@@ -83,6 +85,7 @@ data class WidgetPrefs(
                     .putString(p + "font", prefs.font.name)
                     .putInt(p + "size", prefs.fontSizeSp)
                     .putInt(p + "daywidth", prefs.dateWidthDp)
+                    .putBoolean(p + "birthdays", prefs.birthdays)
             }
             editor.apply()
         }

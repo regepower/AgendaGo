@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <!-- Optional: birthdays from contacts, requested only when switched on. -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
     <!-- Re-draw widgets and re-arm the calendar change trigger after a reboot. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 

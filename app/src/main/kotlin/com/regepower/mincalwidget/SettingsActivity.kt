@@ -25,6 +25,7 @@ import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import com.regepower.mincalwidget.data.Birthdays
 import com.regepower.mincalwidget.data.CalendarInfo
 import com.regepower.mincalwidget.data.DateLabels
 import com.regepower.mincalwidget.data.Event
@@ -48,6 +49,7 @@ class SettingsActivity : Activity() {
 
     private lateinit var permissionCard: LinearLayout
     private lateinit var calendarBtn: Button
+    private lateinit var birthdaySwitch: CompoundButton
     private lateinit var previewBox: LinearLayout
 
     private val dp get() = resources.displayMetrics.density
@@ -97,6 +99,12 @@ class SettingsActivity : Activity() {
         if (requestCode == REQUEST_CALENDAR) {
             refreshPermission()
             refreshWidgets()
+        }
+        if (requestCode == REQUEST_CONTACTS) {
+            val granted = Birthdays.permitted(this)
+            prefs = prefs.copy(birthdays = granted)
+            birthdaySwitch.isChecked = granted
+            loadData()
         }
     }
 
@@ -168,6 +176,16 @@ class SettingsActivity : Activity() {
                     },
                     fullWidth(top = 4),
                 )
+                birthdaySwitch =
+                    switchRow(R.string.show_birthdays, prefs.birthdays && Birthdays.permitted(context)) { on ->
+                        if (on && !Birthdays.permitted(this@SettingsActivity)) {
+                            requestPermissions(arrayOf(Manifest.permission.READ_CONTACTS), REQUEST_CONTACTS)
+                        } else {
+                            prefs = prefs.copy(birthdays = on)
+                            loadData()
+                        }
+                    }.also { it.tooltipText = getString(R.string.help_birthdays) }
+                addView(birthdaySwitch, fullWidth(top = 4))
             },
             fullWidth(top = 12),
         )
@@ -656,6 +674,7 @@ class SettingsActivity : Activity() {
 
     companion object {
         private const val REQUEST_CALENDAR = 1
+        private const val REQUEST_CONTACTS = 2
         private const val STATE_WIDGET = "widget_id"
         private const val PREVIEW_ROWS = 4
         private const val DIALOG_HEIGHT = 0.6f

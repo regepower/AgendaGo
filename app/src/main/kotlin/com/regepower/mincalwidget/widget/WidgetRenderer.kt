@@ -7,6 +7,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.provider.CalendarContract
 import android.util.TypedValue
 import android.view.View
@@ -158,8 +159,10 @@ object WidgetRenderer {
         setOnClickFillInIntent(
             R.id.row,
             Intent()
-                .setData(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, event.eventId))
-                .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, event.begin)
+                .setData(
+                    event.link?.let(Uri::parse)
+                        ?: ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, event.eventId),
+                ).putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, event.begin)
                 .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, event.end)
                 .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, event.allDay),
         )

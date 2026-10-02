@@ -15,6 +15,8 @@ data class CalendarInfo(
     val name: String,
     val account: String,
     val color: Int,
+    /** What a tap opens; null = the calendar event [eventId]. */
+    val link: String? = null,
 ) {
     val label: String get() = if (account.isBlank() || account == name) name else "$name ($account)"
 }
@@ -124,6 +126,7 @@ class EventRepository(
                     )
             }
         }
+        if (prefs.birthdays) events += Birthdays.upcoming(context, today, lastDay)
         return events
             .filter { e ->
                 val notOver = if (e.allDay) e.endDayExclusive() > today else e.end > now || e.begin >= now

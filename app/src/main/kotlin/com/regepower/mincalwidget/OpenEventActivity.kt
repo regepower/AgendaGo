@@ -17,7 +17,10 @@ class OpenEventActivity : Activity() {
         super.onCreate(savedInstanceState)
         val event = intent.data
         val target =
-            if (event != null) {
+            if (event != null && event.authority != CalendarContract.AUTHORITY) {
+                // Birthday rows link to the contact.
+                Intent(Intent.ACTION_VIEW, event)
+            } else if (event != null) {
                 Intent(Intent.ACTION_VIEW, event)
                     .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, intent.getLongExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, 0L))
                     .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, intent.getLongExtra(CalendarContract.EXTRA_EVENT_END_TIME, 0L))
