@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Calendar page with three event rows. Farthest point r = 28.3, inside the r = 33 safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,38 H70 A4,4 0 0 1 74,42 V70 A4,4 0 0 1 70,74 H38 A4,4 0 0 1 34,70 V42 A4,4 0 0 1 38,38 Z" />
+    <path
+        android:fillColor="#FFC857"
+        android:pathData="M34,42 A4,4 0 0 1 38,38 H70 A4,4 0 0 1 74,42 V48 H34 Z" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M44,34 V42 M64,34 V42"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeWidth="4" />
+    <path
+        android:fillColor="#E53935"
+        android:pathData="M38,55 a2.5,2.5 0 1 0 5,0 a2.5,2.5 0 1 0 -5,0 Z" />
+    <path
+        android:fillColor="#43A047"
+        android:pathData="M38,62 a2.5,2.5 0 1 0 5,0 a2.5,2.5 0 1 0 -5,0 Z" />
+    <path
+        android:fillColor="#1E88E5"
+        android:pathData="M38,69 a2.5,2.5 0 1 0 5,0 a2.5,2.5 0 1 0 -5,0 Z" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M47,55 H69 M47,62 H65 M47,69 H67"
+        android:strokeColor="#455A64"
+        android:strokeLineCap="round"
+        android:strokeWidth="3" />
+</vector>

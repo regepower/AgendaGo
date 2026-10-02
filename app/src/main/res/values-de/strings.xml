@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_label">Nächste Termine</string>
+    <string name="widget_description">Deine nächsten Kalendertermine als kompakte Liste.</string>
+
+    <string name="title_settings">Widget-Einstellungen</string>
+    <string name="perm_missing">Für die Anzeige der Termine wird Kalenderzugriff benötigt.</string>
+    <string name="btn_allow">Kalenderzugriff erlauben</string>
+
+    <string name="section_calendars">Kalender</string>
+    <string name="calendars_all">Alle Kalender</string>
+    <string name="calendars_some">%1$d Kalender</string>
+    <string name="pick_calendars_title">Termine anzeigen aus</string>
+    <string name="no_calendars">Keine Kalender gefunden.</string>
+
+    <string name="section_display">Anzeige</string>
+    <string name="label_events">Anzahl Ereignisse</string>
+    <string name="label_days">Anzahl Tage</string>
+    <string name="show_location">Ort anzeigen</string>
+
+    <string name="section_appearance">Darstellung</string>
+    <string name="label_font">Schriftart</string>
+    <string name="font_sans">Standard</string>
+    <string name="font_serif">Serif</string>
+    <string name="font_mono">Monospace</string>
+    <string name="font_cursive">Schreibschrift</string>
+    <string name="label_font_size">Schriftgröße</string>
+    <string name="label_date_width">Spaltenbreite Datum</string>
+    <string name="transparent">Transparenter Hintergrund</string>
+    <string name="invert">Farben umkehren</string>
+    <string name="help_invert">Helle Schrift auf dunklem Grund im hellen Modus und umgekehrt. Praktisch bei transparentem Hintergrund.</string>
+
+    <string name="section_preview">Vorschau</string>
+    <string name="btn_apply">Übernehmen</string>
+    <string name="btn_add_widget">Widget zum Startbildschirm hinzufügen</string>
+    <string name="saved">Gespeichert</string>
+    <string name="choose_widget">Welches Widget?</string>
+    <string name="widget_n">Widget %1$d</string>
+
+    <string name="today">Heute</string>
+    <string name="tomorrow">Morg.</string>
+    <string name="no_title">(Ohne Titel)</string>
+    <string name="widget_empty">Keine anstehenden Termine</string>
+    <string name="widget_no_permission">Tippen, um Kalenderzugriff zu erlauben</string>
+
+    <string name="preview_date_1">Heute 16:00</string>
+    <string name="preview_date_2">Morg. 09:30</string>
+    <string name="preview_date_3">24.10.</string>
+    <string name="preview_title_1">Zahnarzt</string>
+    <string name="preview_title_2">Team-Meeting · Raum 2</string>
+    <string name="preview_title_3">Geburtstag Anna</string>
+</resources>

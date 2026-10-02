@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">MinCalWidget</string>
+    <string name="widget_label">Upcoming events</string>
+    <string name="widget_description">Your next calendar events as a compact list.</string>
+
+    <string name="title_settings">Widget settings</string>
+    <string name="perm_missing">Calendar access is needed to show your events.</string>
+    <string name="btn_allow">Allow calendar access</string>
+
+    <string name="section_calendars">Calendars</string>
+    <string name="calendars_all">All calendars</string>
+    <string name="calendars_some">%1$d calendars</string>
+    <string name="pick_calendars_title">Show events from</string>
+    <string name="no_calendars">No calendars found.</string>
+
+    <string name="section_display">Content</string>
+    <string name="label_events">Number of events</string>
+    <string name="label_days">Number of days</string>
+    <string name="show_location">Show location</string>
+
+    <string name="section_appearance">Appearance</string>
+    <string name="label_font">Font</string>
+    <string name="font_sans">Standard</string>
+    <string name="font_serif">Serif</string>
+    <string name="font_mono">Monospace</string>
+    <string name="font_cursive">Handwriting</string>
+    <string name="label_font_size">Font size</string>
+    <string name="label_date_width">Width of date column</string>
+    <string name="transparent">Transparent background</string>
+    <string name="invert">Invert colors</string>
+    <string name="help_invert">Light text on dark background in light mode and the other way round. Useful with a transparent background.</string>
+
+    <string name="section_preview">Preview</string>
+    <string name="btn_apply">Apply</string>
+    <string name="btn_add_widget">Add widget to home screen</string>
+    <string name="saved">Saved</string>
+    <string name="choose_widget">Which widget?</string>
+    <string name="widget_n">Widget %1$d</string>
+
+    <string name="today">Today</string>
+    <string name="tomorrow">Tmrw</string>
+    <string name="no_title">(No title)</string>
+    <string name="widget_empty">No upcoming events</string>
+    <string name="widget_no_permission">Tap to allow calendar access</string>
+
+    <string name="preview_date_1">Today 16:00</string>
+    <string name="preview_date_2">Tmrw 09:30</string>
+    <string name="preview_date_3">10/24</string>
+    <string name="preview_title_1">Dentist</string>
+    <string name="preview_title_2">Team meeting · Room 2</string>
+    <string name="preview_title_3">Anna\'s birthday</string>
+
+    <!-- Language-neutral formats. -->
+    <string name="unit_sp" translatable="false">%1$d sp</string>
+    <string name="unit_dp" translatable="false">%1$d dp</string>
+    <string name="unit_n" translatable="false">%1$d</string>
+    <string name="date_time" translatable="false">%1$s %2$s</string>
+    <string name="title_location" translatable="false">%1$s · %2$s</string>
+</resources>

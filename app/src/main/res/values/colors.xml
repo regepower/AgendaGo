@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App UI (Material You from the wallpaper, minSdk 31). -->
+    <color name="md_primary">@android:color/system_accent1_600</color>
+    <color name="md_on_primary">@android:color/system_accent1_0</color>
+    <color name="md_container">@android:color/system_accent1_100</color>
+    <color name="md_on_container">@android:color/system_accent1_900</color>
+    <color name="md_surface">@android:color/system_neutral1_10</color>
+    <color name="md_outline">@android:color/system_neutral2_500</color>
+    <color name="md_error_container">#FFDAD6</color>
+    <color name="md_on_error_container">#410002</color>
+
+    <!-- Widget. Resolved in the launcher, so they follow wallpaper and day/night. -->
+    <color name="w_bg">@android:color/system_neutral1_50</color>
+    <color name="w_text">@android:color/system_neutral1_900</color>
+    <color name="w_text2">@android:color/system_neutral2_700</color>
+    <!-- "Invert colours": the opposite theme's palette. -->
+    <color name="w_bg_inv">@android:color/system_neutral1_900</color>
+    <color name="w_text_inv">@android:color/system_neutral1_50</color>
+    <color name="w_text2_inv">@android:color/system_neutral2_200</color>
+
+    <color name="ic_launcher_background">#00796B</color>
+</resources>
