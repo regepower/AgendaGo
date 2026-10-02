@@ -38,6 +38,10 @@ data class Event(
 
     /** Day after the event (exclusive end) for all-day events. */
     fun endDayExclusive(): LocalDate = Instant.ofEpochMilli(end).atZone(ZoneOffset.UTC).toLocalDate()
+
+    /** Last calendar day the event covers (an end at midnight belongs to the day before). */
+    fun lastDay(zone: ZoneId): LocalDate =
+        Instant.ofEpochMilli(maxOf(end - 1, begin)).atZone(if (allDay) ZoneOffset.UTC else zone).toLocalDate()
 }
 
 class EventRepository(
@@ -53,7 +57,7 @@ class EventRepository(
             )
         val result = mutableListOf<CalendarInfo>()
         context.contentResolver
-            .query(Calendars.CONTENT_URI, projection, "${Calendars.VISIBLE}=1", null, null)
+            .query(Calendars.CONTENT_URI, projection, null, null, null)
             ?.use { c ->
                 while (c.moveToNext()) {
                     result += CalendarInfo(c.getLong(0), c.getString(1).orEmpty(), c.getString(2).orEmpty(), c.getInt(3))
@@ -94,8 +98,12 @@ class EventRepository(
         val ids = prefs.calendarIds.toList()
         val selection =
             buildString {
-                append("${Instances.VISIBLE}=1")
-                if (ids.isNotEmpty()) append(" AND ${Instances.CALENDAR_ID} IN (${ids.joinToString(",") { "?" }})")
+                // "All" = calendars visible in the calendar app; an explicit choice wins over visibility.
+                if (ids.isEmpty()) {
+                    append("${Instances.VISIBLE}=1")
+                } else {
+                    append("${Instances.CALENDAR_ID} IN (${ids.joinToString(",") { "?" }})")
+                }
             }
         val args = ids.map { it.toString() }.toTypedArray().takeIf { it.isNotEmpty() }
         val noTitle = context.getString(R.string.no_title)

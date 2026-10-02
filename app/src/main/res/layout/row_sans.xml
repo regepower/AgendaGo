@@ -7,8 +7,8 @@
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingTop="1dp"
-    android:paddingBottom="1dp">
+    android:paddingTop="0.5dp"
+    android:paddingBottom="0.5dp">
 
     <ImageView
         android:id="@+id/dot"

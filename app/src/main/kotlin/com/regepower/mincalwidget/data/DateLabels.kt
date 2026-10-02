@@ -20,14 +20,19 @@ class DateLabels(
 
     fun label(event: Event): String {
         val day = event.startDay(zone)
-        val dayText =
-            when {
-                day <= today -> context.getString(R.string.today)
-                day == today.plusDays(1) -> context.getString(R.string.tomorrow)
-                else -> day.format(dateFormat)
-            }
+        val dayText = dayText(day)
+        // Multi-day events: "Today - Tmrw", "Today - 5.10." (no time, like the original widget).
+        val last = event.lastDay(zone)
+        if (last > day && last > today) return context.getString(R.string.date_range, dayText, dayText(last))
         // All-day events and events that started on an earlier day show no time.
         if (event.allDay || day < today) return dayText
         return context.getString(R.string.date_time, dayText, timeFormat.format(Date(event.begin)))
     }
+
+    private fun dayText(day: LocalDate): String =
+        when {
+            day <= today -> context.getString(R.string.today)
+            day == today.plusDays(1) -> context.getString(R.string.tomorrow)
+            else -> day.format(dateFormat)
+        }
 }

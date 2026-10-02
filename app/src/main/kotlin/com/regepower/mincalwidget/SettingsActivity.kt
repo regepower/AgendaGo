@@ -48,7 +48,7 @@ class SettingsActivity : Activity() {
     private var previewEvents: List<Event> = emptyList()
 
     private lateinit var permissionCard: LinearLayout
-    private lateinit var calendarBox: LinearLayout
+    private lateinit var calendarBtn: Button
     private lateinit var previewBox: LinearLayout
 
     private val dp get() = resources.displayMetrics.density
@@ -140,8 +140,8 @@ class SettingsActivity : Activity() {
         root.addView(
             card().apply {
                 addView(header(R.string.section_calendars))
-                calendarBox = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-                addView(calendarBox, fullWidth(top = 4))
+                calendarBtn = button(R.string.calendars_all) { pickCalendars() }
+                addView(calendarBtn, fullWidth(top = 4))
             },
             fullWidth(top = 8),
         )
@@ -233,7 +233,7 @@ class SettingsActivity : Activity() {
             fullWidth(top = 8),
         )
 
-        renderCalendarList()
+        updateCalendarButton()
         renderPreview()
         return ScrollView(this).apply {
             fitsSystemWindows = true
@@ -292,58 +292,81 @@ class SettingsActivity : Activity() {
                 if (isFinishing) return@runOnUiThread
                 calendars = cals
                 previewEvents = events
-                renderCalendarList()
+                updateCalendarButton()
                 renderPreview()
             }
         }.start()
     }
 
+    private fun updateCalendarButton() {
+        val chosen = calendars.filter { it.id in prefs.calendarIds }
+        calendarBtn.text =
+            when {
+                prefs.calendarIds.isEmpty() || chosen.isEmpty() -> getString(R.string.calendars_all)
+                chosen.size <= 2 -> chosen.joinToString(", ") { it.name }
+                else -> resources.getQuantityString(R.plurals.calendars_some, chosen.size, chosen.size)
+            }
+    }
+
     /**
-     * Calendars as checkboxes directly in the card: scrolls with the page, so long lists work on
-     * every device (the multi-choice dialog did not scroll on some phones).
+     * Own checkbox list in a height-capped ScrollView: the built-in multi-choice dialog list did
+     * not scroll on the test phone (HyperOS), so long calendar lists were cut off.
      */
-    private fun renderCalendarList() {
-        calendarBox.removeAllViews()
+    private fun pickCalendars() {
         if (calendars.isEmpty()) {
-            calendarBox.addView(
-                TextView(this).apply {
-                    text = getString(if (hasPermission()) R.string.no_calendars else R.string.perm_missing)
-                },
-            )
+            AlertDialog
+                .Builder(this)
+                .setTitle(R.string.pick_calendars_title)
+                .setMessage(if (hasPermission()) R.string.no_calendars else R.string.perm_missing)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
             return
         }
         val tint = ColorStateList.valueOf(getColor(R.color.md_primary))
-        for (calendar in calendars) {
-            calendarBox.addView(
+        val boxes =
+            calendars.map { calendar ->
                 CheckBox(this).apply {
                     text = coloredLabel(calendar)
                     buttonTintList = tint
-                    minHeight = px(44)
+                    minHeight = px(48)
                     isChecked = prefs.calendarIds.isEmpty() || calendar.id in prefs.calendarIds
-                    setOnCheckedChangeListener { box, checked -> onCalendarToggled(box, checked) }
-                },
-                fullWidth(),
-            )
-        }
-    }
-
-    private fun onCalendarToggled(
-        box: CompoundButton,
-        checked: Boolean,
-    ) {
-        val selected =
-            calendars
-                .filterIndexed { i, _ -> (calendarBox.getChildAt(i) as CompoundButton).isChecked }
-                .map { it.id }
-                .toSet()
-        if (selected.isEmpty()) {
-            // At least one calendar stays selected; an empty widget is never intended.
-            box.isChecked = !checked
-            return
-        }
-        // Everything ticked = all calendars (also covers calendars added later).
-        prefs = prefs.copy(calendarIds = if (selected.size == calendars.size) emptySet() else selected)
-        loadData()
+                }
+            }
+        val list =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(px(20), px(8), px(20), px(8))
+                boxes.forEach { addView(it, fullWidth()) }
+            }
+        val maxHeight = (resources.displayMetrics.heightPixels * DIALOG_HEIGHT).toInt()
+        val scroller =
+            object : ScrollView(this) {
+                override fun onMeasure(
+                    widthMeasureSpec: Int,
+                    heightMeasureSpec: Int,
+                ) {
+                    super.onMeasure(widthMeasureSpec, View.MeasureSpec.makeMeasureSpec(maxHeight, View.MeasureSpec.AT_MOST))
+                }
+            }.apply {
+                isVerticalScrollBarEnabled = true
+                isScrollbarFadingEnabled = false
+                addView(list)
+            }
+        AlertDialog
+            .Builder(this)
+            .setTitle(R.string.pick_calendars_title)
+            .setView(scroller)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val selected = calendars.filterIndexed { i, _ -> boxes[i].isChecked }.map { it.id }.toSet()
+                // Nothing or everything ticked = all calendars (also covers calendars added later).
+                prefs =
+                    prefs.copy(
+                        calendarIds = if (selected.isEmpty() || selected.size == calendars.size) emptySet() else selected,
+                    )
+                updateCalendarButton()
+                loadData()
+            }.setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun coloredLabel(calendar: CalendarInfo): CharSequence {
@@ -548,6 +571,7 @@ class SettingsActivity : Activity() {
         private const val REQUEST_CALENDAR = 1
         private const val STATE_WIDGET = "widget_id"
         private const val PREVIEW_ROWS = 4
+        private const val DIALOG_HEIGHT = 0.6f
         private const val DAY_MS = 24L * 60 * 60 * 1000
         private const val OPAQUE = 0xFF000000.toInt()
         private const val DOT = "●"

@@ -9,6 +9,12 @@
     <string name="btn_allow">Allow calendar access</string>
 
     <string name="section_calendars">Calendars</string>
+    <string name="calendars_all">All calendars</string>
+    <plurals name="calendars_some">
+        <item quantity="one">%1$d calendar</item>
+        <item quantity="other">%1$d calendars</item>
+    </plurals>
+    <string name="pick_calendars_title">Show events from</string>
     <string name="no_calendars">No calendars found.</string>
 
     <string name="section_display">Content</string>
@@ -52,6 +58,7 @@
     <string name="unit_sp" translatable="false">%1$d sp</string>
     <string name="unit_dp" translatable="false">%1$d dp</string>
     <string name="unit_n" translatable="false">%1$d</string>
+    <string name="date_range" translatable="false">%1$s - %2$s</string>
     <string name="date_time" translatable="false">%1$s %2$s</string>
     <string name="title_location" translatable="false">%1$s · %2$s</string>
 </resources>
