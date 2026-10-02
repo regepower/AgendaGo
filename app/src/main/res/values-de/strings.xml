@@ -8,12 +8,6 @@
     <string name="btn_allow">Kalenderzugriff erlauben</string>
 
     <string name="section_calendars">Kalender</string>
-    <string name="calendars_all">Alle Kalender</string>
-    <plurals name="calendars_some">
-        <item quantity="one">%1$d Kalender</item>
-        <item quantity="other">%1$d Kalender</item>
-    </plurals>
-    <string name="pick_calendars_title">Termine anzeigen aus</string>
     <string name="no_calendars">Keine Kalender gefunden.</string>
 
     <string name="section_display">Anzeige</string>

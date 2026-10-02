@@ -9,12 +9,6 @@
     <string name="btn_allow">Allow calendar access</string>
 
     <string name="section_calendars">Calendars</string>
-    <string name="calendars_all">All calendars</string>
-    <plurals name="calendars_some">
-        <item quantity="one">%1$d calendar</item>
-        <item quantity="other">%1$d calendars</item>
-    </plurals>
-    <string name="pick_calendars_title">Show events from</string>
     <string name="no_calendars">No calendars found.</string>
 
     <string name="section_display">Content</string>
