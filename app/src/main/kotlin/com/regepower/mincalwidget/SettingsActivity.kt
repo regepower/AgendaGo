@@ -303,7 +303,7 @@ class SettingsActivity : Activity() {
             when {
                 prefs.calendarIds.isEmpty() || chosen.isEmpty() -> getString(R.string.calendars_all)
                 chosen.size <= 2 -> chosen.joinToString(", ") { it.name }
-                else -> getString(R.string.calendars_some, chosen.size)
+                else -> resources.getQuantityString(R.plurals.calendars_some, chosen.size, chosen.size)
             }
     }
 
