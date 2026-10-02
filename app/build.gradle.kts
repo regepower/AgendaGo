@@ -69,6 +69,7 @@ android {
 
     lint {
         abortOnError = true
+        textReport = true
         warningsAsErrors = false
     }
 }
