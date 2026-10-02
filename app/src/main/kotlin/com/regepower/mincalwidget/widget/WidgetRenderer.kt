@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.CalendarContract
 import android.util.TypedValue
+import android.view.View
 import android.widget.RemoteViews
 import com.regepower.mincalwidget.OpenEventActivity
 import com.regepower.mincalwidget.R
@@ -69,6 +70,9 @@ object WidgetRenderer {
         val pal = palette(prefs)
         val views = RemoteViews(context.packageName, R.layout.widget)
         views.setInt(android.R.id.background, "setBackgroundResource", pal.bg)
+        val density = context.resources.displayMetrics.density
+        val (padH, padV) = paddingDp(prefs).let { (h, v) -> (h * density).toInt() to (v * density).toInt() }
+        views.setViewPadding(android.R.id.background, padH, padV, padH, padV)
 
         views.setTextViewText(
             R.id.empty,
@@ -92,13 +96,14 @@ object WidgetRenderer {
         views.setEmptyView(R.id.list, R.id.empty)
 
         val labels = DateLabels(context)
+        val cols = columns(prefs, labels)
         val items =
             RemoteViews.RemoteCollectionItems
                 .Builder()
                 .setHasStableIds(true)
                 .setViewTypeCount(FontStyle.entries.size)
         for (event in events) {
-            items.addItem(event.instanceId, row(context, prefs, pal, labels, event))
+            items.addItem(event.instanceId, row(context, prefs, pal, labels, cols, event))
         }
         views.setRemoteAdapter(R.id.list, items.build())
         // Row taps fill in the event URI; explicit target, so a mutable PendingIntent is allowed.
@@ -109,21 +114,46 @@ object WidgetRenderer {
         return views
     }
 
+    /** Column widths (dp) shared by widget and settings preview. */
+    data class Columns(
+        val day: Float,
+        val time: Float,
+    )
+
+    fun columns(
+        prefs: WidgetPrefs,
+        labels: DateLabels,
+    ) = Columns(prefs.dateWidthDp.toFloat(), labels.timeColumnWidthDp(prefs))
+
+    /** Inner padding in dp: none on a transparent background, room for the rounded corners otherwise. */
+    fun paddingDp(prefs: WidgetPrefs): Pair<Int, Int> = if (prefs.transparent) 0 to 0 else 10 to 6
+
     private fun row(
         context: Context,
         prefs: WidgetPrefs,
         pal: Palette,
         labels: DateLabels,
+        cols: Columns,
         event: Event,
     ) = RemoteViews(context.packageName, prefs.font.rowLayout).apply {
         val size = prefs.fontSizeSp.toFloat()
-        setTextViewText(R.id.date, labels.label(event))
-        setTextViewText(R.id.title, titleText(context, prefs, event))
-        setTextViewTextSize(R.id.date, TypedValue.COMPLEX_UNIT_SP, size)
-        setTextViewTextSize(R.id.title, TypedValue.COMPLEX_UNIT_SP, size)
-        setViewLayoutWidth(R.id.date, prefs.dateWidthDp.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
+        val label = labels.label(event)
+        setTextViewText(R.id.date, label.day)
+        setTextViewText(R.id.time, label.time)
+        setTextViewText(R.id.title, event.title)
+        val location = if (prefs.showLocation) event.location else ""
+        setTextViewText(R.id.location, location)
+        setViewVisibility(R.id.location, if (location.isEmpty()) View.GONE else View.VISIBLE)
+        // A multi-day range uses the time column too.
+        setViewVisibility(R.id.time, if (label.span) View.GONE else View.VISIBLE)
+        val dayWidth = if (label.span) cols.day + cols.time else cols.day
+        setViewLayoutWidth(R.id.date, dayWidth, TypedValue.COMPLEX_UNIT_DIP)
+        setViewLayoutWidth(R.id.time, cols.time, TypedValue.COMPLEX_UNIT_DIP)
+        for (id in TEXT_IDS) setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_SP, size)
         setColor(R.id.date, "setTextColor", pal.text2)
+        setColor(R.id.time, "setTextColor", pal.text2)
         setColor(R.id.title, "setTextColor", pal.text)
+        setColor(R.id.location, "setTextColor", pal.text2)
         setInt(R.id.dot, "setColorFilter", event.color or OPAQUE)
         setOnClickFillInIntent(
             R.id.row,
@@ -134,17 +164,6 @@ object WidgetRenderer {
                 .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, event.allDay),
         )
     }
-
-    fun titleText(
-        context: Context,
-        prefs: WidgetPrefs,
-        event: Event,
-    ): String =
-        if (prefs.showLocation && event.location.isNotEmpty()) {
-            context.getString(R.string.title_location, event.title, event.location)
-        } else {
-            event.title
-        }
 
     /** [requestCode] must differ per widget and purpose, otherwise PendingIntents get merged. */
     private fun activityIntent(
@@ -160,4 +179,5 @@ object WidgetRenderer {
     }
 
     private const val OPAQUE = 0xFF000000.toInt()
+    private val TEXT_IDS = intArrayOf(R.id.date, R.id.time, R.id.title, R.id.location)
 }

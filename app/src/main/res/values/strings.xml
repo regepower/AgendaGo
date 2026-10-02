@@ -32,7 +32,7 @@
     <string name="font_mono">Monospace</string>
     <string name="font_cursive">Handwriting</string>
     <string name="label_font_size">Font size</string>
-    <string name="label_date_width">Width of date column</string>
+    <string name="label_date_width">Width of day column</string>
     <string name="transparent">Transparent background</string>
     <string name="invert">Invert colors</string>
     <string name="help_invert">Light text on dark background in light mode and the other way round. Useful with a transparent background.</string>
@@ -50,18 +50,21 @@
     <string name="widget_empty">No upcoming events</string>
     <string name="widget_no_permission">Tap to allow calendar access</string>
 
-    <string name="preview_date_1">Today 16:00</string>
-    <string name="preview_date_2">Tmrw 09:30</string>
-    <string name="preview_date_3">10/24</string>
+
+    <string name="preview_day_1">Today</string>
+    <string name="preview_day_2">Tmrw</string>
+    <string name="preview_day_3">10/24</string>
     <string name="preview_title_1">Dentist</string>
-    <string name="preview_title_2">Team meeting · Room 2</string>
+    <string name="preview_title_2">Team meeting</string>
+    <string name="preview_location_2">Room 2</string>
     <string name="preview_title_3">Anna\'s birthday</string>
 
     <!-- Language-neutral formats. -->
     <string name="unit_sp" translatable="false">%1$d sp</string>
     <string name="unit_dp" translatable="false">%1$d dp</string>
+    <string name="preview_time_1" translatable="false">16:00</string>
+    <string name="preview_time_2" translatable="false">09:30</string>
     <string name="unit_n" translatable="false">%1$d</string>
     <string name="date_range" translatable="false">%1$s - %2$s</string>
     <string name="date_time" translatable="false">%1$s %2$s</string>
-    <string name="title_location" translatable="false">%1$s · %2$s</string>
 </resources>

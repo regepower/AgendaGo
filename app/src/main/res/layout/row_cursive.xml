@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One event row, font "cursive". RemoteViews cannot change a typeface, so each font has its own layout. -->
+<!-- One event row, font "cursive". RemoteViews cannot change a typeface, so each font has its own layout.
+     Columns: colour dot | day | time | title | location (gets what is left, may be hidden). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/row"
@@ -14,30 +15,52 @@
         android:id="@+id/dot"
         android:layout_width="8dp"
         android:layout_height="8dp"
-        android:layout_marginEnd="6dp"
+        android:layout_marginEnd="5dp"
         android:importantForAccessibility="no"
         android:src="@drawable/dot" />
 
     <TextView
         android:id="@+id/date"
-        android:layout_width="88dp"
+        android:layout_width="52dp"
         android:layout_height="wrap_content"
         android:ellipsize="end"
         android:fontFamily="cursive"
         android:maxLines="1"
         android:textColor="@color/w_text2"
         android:textSize="14sp"
-        tools:text="Morg. 16:00" />
+        tools:text="Morg." />
+
+    <TextView
+        android:id="@+id/time"
+        android:layout_width="44dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="cursive"
+        android:maxLines="1"
+        android:textColor="@color/w_text2"
+        android:textSize="14sp"
+        tools:text="16:00" />
 
     <TextView
         android:id="@+id/title"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:ellipsize="end"
         android:fontFamily="cursive"
         android:maxLines="1"
         android:textColor="@color/w_text"
         android:textSize="14sp"
         tools:text="Zahnarzt" />
+
+    <TextView
+        android:id="@+id/location"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:fontFamily="cursive"
+        android:maxLines="1"
+        android:textColor="@color/w_text2"
+        android:textSize="14sp"
+        tools:text="Raum 2" />
 </LinearLayout>

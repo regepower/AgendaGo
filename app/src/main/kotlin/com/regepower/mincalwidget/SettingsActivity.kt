@@ -451,21 +451,31 @@ class SettingsActivity : Activity() {
         previewBox.setBackgroundResource(pal.bg)
         previewBox.removeAllViews()
         val labels = DateLabels(this)
+        val cols = WidgetRenderer.columns(prefs, labels)
         val size = prefs.fontSizeSp.toFloat()
+        val (padH, padV) = WidgetRenderer.paddingDp(prefs)
+        previewBox.setPadding(px(padH), px(padV), px(padH), px(padV))
         for (event in previewEvents.ifEmpty { sampleEvents() }) {
             val row = layoutInflater.inflate(prefs.font.rowLayout, previewBox, false)
+            val label = labels.label(event)
+            val location = if (prefs.showLocation) event.location else ""
             row.findViewById<ImageView>(R.id.dot).setColorFilter(event.color or OPAQUE)
-            row.findViewById<TextView>(R.id.date).apply {
-                text = labels.label(event)
+
+            fun text(
+                id: Int,
+                value: String,
+                color: Int,
+                widthDp: Float? = null,
+            ) = row.findViewById<TextView>(id).apply {
+                text = value
                 textSize = size
-                setTextColor(getColor(pal.text2))
-                layoutParams = layoutParams.apply { width = px(prefs.dateWidthDp) }
+                setTextColor(getColor(color))
+                if (widthDp != null) layoutParams = layoutParams.apply { width = (widthDp * dp).toInt() }
             }
-            row.findViewById<TextView>(R.id.title).apply {
-                text = WidgetRenderer.titleText(this@SettingsActivity, prefs, event)
-                textSize = size
-                setTextColor(getColor(pal.text))
-            }
+            text(R.id.date, label.day, pal.text2, if (label.span) cols.day + cols.time else cols.day)
+            text(R.id.time, label.time, pal.text2, cols.time).visibility = if (label.span) View.GONE else View.VISIBLE
+            text(R.id.title, event.title, pal.text)
+            text(R.id.location, location, pal.text2).visibility = if (location.isEmpty()) View.GONE else View.VISIBLE
             previewBox.addView(row)
         }
     }
@@ -476,7 +486,16 @@ class SettingsActivity : Activity() {
         val utcMidnight = (now / DAY_MS + 3) * DAY_MS
         return listOf(
             Event(1, 0, now + 2 * hour, now + 3 * hour, false, getString(R.string.preview_title_1), "", SAMPLE_GREEN),
-            Event(2, 0, now + 20 * hour, now + 21 * hour, false, getString(R.string.preview_title_2), "", SAMPLE_BLUE),
+            Event(
+                2,
+                0,
+                now + 20 * hour,
+                now + 21 * hour,
+                false,
+                getString(R.string.preview_title_2),
+                getString(R.string.preview_location_2),
+                SAMPLE_BLUE,
+            ),
             Event(3, 0, utcMidnight, utcMidnight + DAY_MS, true, getString(R.string.preview_title_3), "", SAMPLE_RED),
         )
     }

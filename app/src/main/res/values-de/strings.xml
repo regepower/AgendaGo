@@ -31,7 +31,7 @@
     <string name="font_mono">Monospace</string>
     <string name="font_cursive">Schreibschrift</string>
     <string name="label_font_size">Schriftgröße</string>
-    <string name="label_date_width">Spaltenbreite Datum</string>
+    <string name="label_date_width">Breite Tagesspalte</string>
     <string name="transparent">Transparenter Hintergrund</string>
     <string name="invert">Farben umkehren</string>
     <string name="help_invert">Helle Schrift auf dunklem Grund im hellen Modus und umgekehrt. Praktisch bei transparentem Hintergrund.</string>
@@ -49,10 +49,11 @@
     <string name="widget_empty">Keine anstehenden Termine</string>
     <string name="widget_no_permission">Tippen, um Kalenderzugriff zu erlauben</string>
 
-    <string name="preview_date_1">Heute 16:00</string>
-    <string name="preview_date_2">Morg. 09:30</string>
-    <string name="preview_date_3">24.10.</string>
+    <string name="preview_day_1">Heute</string>
+    <string name="preview_day_2">Morg.</string>
+    <string name="preview_day_3">24.10.</string>
     <string name="preview_title_1">Zahnarzt</string>
-    <string name="preview_title_2">Team-Meeting · Raum 2</string>
+    <string name="preview_title_2">Team-Meeting</string>
+    <string name="preview_location_2">Raum 2</string>
     <string name="preview_title_3">Geburtstag Anna</string>
 </resources>

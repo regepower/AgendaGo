@@ -29,13 +29,13 @@ data class WidgetPrefs(
     val invert: Boolean = false,
     val font: FontStyle = FontStyle.SANS,
     val fontSizeSp: Int = 14,
-    val dateWidthDp: Int = 88,
+    val dateWidthDp: Int = 52,
 ) {
     companion object {
         val EVENTS = 1..50
         val DAYS = 1..90
         val FONT_SIZE = 10..24
-        val DATE_WIDTH = 40..200
+        val DATE_WIDTH = 30..160
 
         private const val FILE = "widgets"
         private const val DEFAULT = "d."
@@ -61,7 +61,7 @@ data class WidgetPrefs(
                 invert = sp.getBoolean(p + "invert", d.invert),
                 font = FontStyle.entries.firstOrNull { it.name == sp.getString(p + "font", null) } ?: d.font,
                 fontSizeSp = sp.getInt(p + "size", d.fontSizeSp).coerceIn(FONT_SIZE),
-                dateWidthDp = sp.getInt(p + "width", d.dateWidthDp).coerceIn(DATE_WIDTH),
+                dateWidthDp = sp.getInt(p + "daywidth", d.dateWidthDp).coerceIn(DATE_WIDTH),
             )
         }
 
@@ -82,7 +82,7 @@ data class WidgetPrefs(
                     .putBoolean(p + "invert", prefs.invert)
                     .putString(p + "font", prefs.font.name)
                     .putInt(p + "size", prefs.fontSizeSp)
-                    .putInt(p + "width", prefs.dateWidthDp)
+                    .putInt(p + "daywidth", prefs.dateWidthDp)
             }
             editor.apply()
         }

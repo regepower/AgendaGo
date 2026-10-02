@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:paddingHorizontal="10dp"
+    android:paddingVertical="6dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,23 +19,28 @@
         <ImageView
             android:layout_width="8dp"
             android:layout_height="8dp"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="5dp"
             android:importantForAccessibility="no"
             android:src="@drawable/dot"
             android:tint="#43A047" />
 
         <TextView
-            android:layout_width="88dp"
+            android:layout_width="52dp"
             android:layout_height="wrap_content"
             android:maxLines="1"
-            android:text="@string/preview_date_1"
+            android:text="@string/preview_day_1"
             android:textColor="@color/w_text2"
             android:textSize="14sp" />
-
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="44dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:maxLines="1"
+            android:text="@string/preview_time_1"
+            android:textColor="@color/w_text2"
+            android:textSize="14sp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:maxLines="1"
             android:text="@string/preview_title_1"
             android:textColor="@color/w_text"
@@ -51,26 +57,40 @@
         <ImageView
             android:layout_width="8dp"
             android:layout_height="8dp"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="5dp"
             android:importantForAccessibility="no"
             android:src="@drawable/dot"
             android:tint="#1E88E5" />
 
         <TextView
-            android:layout_width="88dp"
+            android:layout_width="52dp"
             android:layout_height="wrap_content"
             android:maxLines="1"
-            android:text="@string/preview_date_2"
+            android:text="@string/preview_day_2"
             android:textColor="@color/w_text2"
             android:textSize="14sp" />
-
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="44dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:maxLines="1"
+            android:text="@string/preview_time_2"
+            android:textColor="@color/w_text2"
+            android:textSize="14sp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:maxLines="1"
             android:text="@string/preview_title_2"
             android:textColor="@color/w_text"
+            android:textSize="14sp" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:maxLines="1"
+            android:text="@string/preview_location_2"
+            android:textColor="@color/w_text2"
             android:textSize="14sp" />
     </LinearLayout>
 
@@ -84,23 +104,27 @@
         <ImageView
             android:layout_width="8dp"
             android:layout_height="8dp"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="5dp"
             android:importantForAccessibility="no"
             android:src="@drawable/dot"
             android:tint="#E53935" />
 
         <TextView
-            android:layout_width="88dp"
+            android:layout_width="52dp"
             android:layout_height="wrap_content"
             android:maxLines="1"
-            android:text="@string/preview_date_3"
+            android:text="@string/preview_day_3"
             android:textColor="@color/w_text2"
             android:textSize="14sp" />
-
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="44dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:maxLines="1"
+            android:textColor="@color/w_text2"
+            android:textSize="14sp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:maxLines="1"
             android:text="@string/preview_title_3"
             android:textColor="@color/w_text"
