@@ -66,5 +66,4 @@
     <string name="preview_time_2" translatable="false">09:30</string>
     <string name="unit_n" translatable="false">%1$d</string>
     <string name="date_range" translatable="false">%1$s - %2$s</string>
-    <string name="date_time" translatable="false">%1$s %2$s</string>
 </resources>
