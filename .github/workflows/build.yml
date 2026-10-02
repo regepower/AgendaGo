@@ -40,6 +40,14 @@ jobs:
           } | grep -v "^--$" | head -80 | sed "s#$GITHUB_WORKSPACE/##g" > "$RUNNER_TEMP/err.txt"
           echo "::error title=Build errors::$(sed -z 's/%/%25/g; s/\r//g; s/\n/%0A/g' "$RUNNER_TEMP/err.txt")"
 
+      - name: Lint warnings as annotation
+        if: success()
+        run: |
+          F=app/build/reports/lint-results-debug.txt
+          [ -f "$F" ] || exit 0
+          grep -E "Warning:|Error:" "$F" | sed "s#$GITHUB_WORKSPACE/##g" | head -60 > "$RUNNER_TEMP/lint.txt" || true
+          [ -s "$RUNNER_TEMP/lint.txt" ] && echo "::notice title=Lint::$(sed -z 's/%/%25/g; s/\r//g; s/\n/%0A/g' "$RUNNER_TEMP/lint.txt")" || true
+
       - uses: actions/upload-artifact@v6
         if: always()
         with:
