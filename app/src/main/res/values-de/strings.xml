@@ -14,6 +14,9 @@
         <item quantity="other">%1$d Kalender</item>
     </plurals>
     <string name="pick_calendars_title">Termine anzeigen aus</string>
+    <string name="cal_birthdays">Geburtstage</string>
+    <string name="cal_local">Auf diesem Gerät</string>
+    <string name="cal_xiaomi_account">Xiaomi-Konto %1$s</string>
     <string name="no_calendars">Keine Kalender gefunden.</string>
 
     <string name="section_display">Anzeige</string>

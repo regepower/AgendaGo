@@ -9,9 +9,8 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Typeface
 import android.os.Bundle
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.style.ForegroundColorSpan
+import android.text.TextUtils
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -303,7 +302,7 @@ class SettingsActivity : Activity() {
         calendarBtn.text =
             when {
                 prefs.calendarIds.isEmpty() || chosen.isEmpty() -> getString(R.string.calendars_all)
-                chosen.size <= 2 -> chosen.joinToString(", ") { it.name }
+                chosen.size <= 2 -> chosen.joinToString(", ") { prettyName(it.name) }
                 else -> resources.getQuantityString(R.plurals.calendars_some, chosen.size, chosen.size)
             }
     }
@@ -322,21 +321,22 @@ class SettingsActivity : Activity() {
                 .show()
             return
         }
-        val tint = ColorStateList.valueOf(getColor(R.color.md_primary))
-        val boxes =
-            calendars.map { calendar ->
-                CheckBox(this).apply {
-                    text = coloredLabel(calendar)
-                    buttonTintList = tint
-                    minHeight = px(48)
-                    isChecked = prefs.calendarIds.isEmpty() || calendar.id in prefs.calendarIds
-                }
-            }
         val list =
             LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
-                setPadding(px(20), px(8), px(20), px(8))
-                boxes.forEach { addView(it, fullWidth()) }
+                setPadding(px(16), px(4), px(16), px(8))
+            }
+        // Grouped by account (calendars are sorted by account): header, then one row per calendar.
+        var account: String? = null
+        val boxes =
+            calendars.map { calendar ->
+                if (calendar.account != account) {
+                    account = calendar.account
+                    list.addView(accountHeader(prettyAccount(calendar.account)), fullWidth(top = if (list.childCount == 0) 4 else 12))
+                }
+                val row = calendarRow(calendar)
+                list.addView(row.first, fullWidth())
+                row.second
             }
         val maxHeight = (resources.displayMetrics.heightPixels * DIALOG_HEIGHT).toInt()
         val scroller =
@@ -369,11 +369,79 @@ class SettingsActivity : Activity() {
             .show()
     }
 
-    private fun coloredLabel(calendar: CalendarInfo): CharSequence {
-        val text = SpannableString(getString(R.string.title_location, DOT, calendar.label))
-        text.setSpan(ForegroundColorSpan(calendar.color or OPAQUE), 0, DOT.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        return text
+    private fun accountHeader(text: String) =
+        TextView(this).apply {
+            this.text = text
+            textSize = 13f
+            maxLines = 1
+            ellipsize = TextUtils.TruncateAt.END
+            setTextColor(getColor(R.color.md_primary))
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(px(4), 0, 0, px(2))
+        }
+
+    /** Row: checkbox, colour dot, single-line name. Tapping anywhere on the row toggles it. */
+    private fun calendarRow(calendar: CalendarInfo): Pair<View, CheckBox> {
+        val box =
+            CheckBox(this).apply {
+                buttonTintList = ColorStateList.valueOf(getColor(R.color.md_primary))
+                isChecked = prefs.calendarIds.isEmpty() || calendar.id in prefs.calendarIds
+                isClickable = false
+                isFocusable = false
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            }
+        val row =
+            LinearLayout(this).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                minimumHeight = px(48)
+                background = rippleBackground()
+                isClickable = true
+                contentDescription = prettyName(calendar.name)
+                setOnClickListener { box.isChecked = !box.isChecked }
+                addView(box, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+                addView(
+                    ImageView(context).apply {
+                        setImageResource(R.drawable.dot)
+                        setColorFilter(calendar.color or OPAQUE)
+                        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                    },
+                    LinearLayout.LayoutParams(px(12), px(12)).apply { marginStart = px(8) },
+                )
+                addView(
+                    TextView(context).apply {
+                        text = prettyName(calendar.name)
+                        textSize = 16f
+                        maxLines = 1
+                        ellipsize = TextUtils.TruncateAt.END
+                    },
+                    LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = px(12) },
+                )
+            }
+        return row to box
     }
+
+    /** Some vendors (e.g. Xiaomi) store resource keys like "calendar_displayname_birthday" as names. */
+    private fun prettyName(raw: String): String {
+        val key = raw.removePrefix(XIAOMI_NAME_PREFIX)
+        if (key == raw) return raw
+        return when (key) {
+            "birthday" -> getString(R.string.cal_birthdays)
+            "xiaomi" -> "Xiaomi"
+            else -> key.replace('_', ' ').replaceFirstChar { it.uppercase() }
+        }
+    }
+
+    private fun prettyAccount(raw: String): String =
+        when {
+            raw == XIAOMI_LOCAL_ACCOUNT || raw.isBlank() -> getString(R.string.cal_local)
+            raw.all { it.isDigit() } -> getString(R.string.cal_xiaomi_account, raw)
+            else -> raw
+        }
+
+    private fun rippleBackground() =
+        obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground)).let { attrs ->
+            attrs.getDrawable(0).also { attrs.recycle() }
+        }
 
     // ---- preview ------------------------------------------------------------------------
 
@@ -572,9 +640,10 @@ class SettingsActivity : Activity() {
         private const val STATE_WIDGET = "widget_id"
         private const val PREVIEW_ROWS = 4
         private const val DIALOG_HEIGHT = 0.6f
+        private const val XIAOMI_NAME_PREFIX = "calendar_displayname_"
+        private const val XIAOMI_LOCAL_ACCOUNT = "account_name_local"
         private const val DAY_MS = 24L * 60 * 60 * 1000
         private const val OPAQUE = 0xFF000000.toInt()
-        private const val DOT = "●"
         private const val SAMPLE_GREEN = 0xFF43A047.toInt()
         private const val SAMPLE_BLUE = 0xFF1E88E5.toInt()
         private const val SAMPLE_RED = 0xFFE53935.toInt()
