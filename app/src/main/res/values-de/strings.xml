@@ -26,6 +26,18 @@
     <string name="help_birthdays">Zeigt die nächsten Geburtstage deiner Kontakte, mit Alter, wenn das Jahr bekannt ist. Benötigt Zugriff auf die Kontakte.</string>
     <string name="show_location">Ort anzeigen</string>
 
+    <string name="btn_calendar_colors">Kalenderfarben ändern</string>
+    <string name="help_calendar_colors">Ändert die Farbe für alle Kalender-Apps. Google-Kalender nutzen die Google-Palette und übertragen die Farbe zu Google; andere Kalender behalten sie nur auf diesem Gerät.</string>
+    <string name="restore_colors">Gerätefarben wiederherstellen</string>
+    <string name="help_restore_colors">Setzt deine Farben für Exchange- und lokale Kalender wieder, wenn ein Abgleich sie zurücksetzt.</string>
+    <string name="btn_done">Fertig</string>
+    <string name="colors_google_hint">Google-Kalender: Die Farbe wird mit deinem Google-Konto synchronisiert.</string>
+    <string name="color_failed">Farbe konnte nicht geändert werden.</string>
+    <string name="color_hex_hint">#RRGGBB</string>
+    <string name="color_free">Eigene Farbe</string>
+    <string name="btn_apply_color">Setzen</string>
+    <string name="color_hex_invalid">Format: #RRGGBB</string>
+    <string name="colors_none">Dieses Konto bietet keine Farben an.</string>
     <string name="section_tasks">Aufgaben</string>
     <string name="show_tasks">Aufgaben (Google Tasks über Tasks.org)</string>
     <string name="help_tasks">Offene Aufgaben aus der App Tasks.org, die Google Tasks synchronisiert. Antippen öffnet die Aufgabe in Tasks.org.</string>

@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <!-- Optional: change calendar colours, requested only when a colour is changed. -->
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
     <!-- Optional: birthdays from contacts, requested only when switched on. -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <!-- Optional: open tasks via Tasks.org (syncs Google Tasks), requested only when switched on. -->

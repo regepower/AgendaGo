@@ -15,6 +15,7 @@ data class CalendarInfo(
     val name: String,
     val account: String,
     val color: Int,
+    val accountType: String = "",
 ) {
     val label: String get() = if (account.isBlank() || account == name) name else "$name ($account)"
 }
@@ -68,13 +69,21 @@ class EventRepository(
                 Calendars.CALENDAR_DISPLAY_NAME,
                 Calendars.ACCOUNT_NAME,
                 Calendars.CALENDAR_COLOR,
+                Calendars.ACCOUNT_TYPE,
             )
         val result = mutableListOf<CalendarInfo>()
         context.contentResolver
             .query(Calendars.CONTENT_URI, projection, null, null, null)
             ?.use { c ->
                 while (c.moveToNext()) {
-                    result += CalendarInfo(c.getLong(0), c.getString(1).orEmpty(), c.getString(2).orEmpty(), c.getInt(3))
+                    result +=
+                        CalendarInfo(
+                            c.getLong(0),
+                            c.getString(1).orEmpty(),
+                            c.getString(2).orEmpty(),
+                            c.getInt(3),
+                            c.getString(4).orEmpty(),
+                        )
                 }
             }
         return result.sortedWith(compareBy({ it.account.lowercase() }, { it.name.lowercase() }))

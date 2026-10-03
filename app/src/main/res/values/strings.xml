@@ -27,6 +27,18 @@
     <string name="help_birthdays">Shows the next birthdays of your contacts, with age if the year is known. Needs access to contacts.</string>
     <string name="show_location">Show location</string>
 
+    <string name="btn_calendar_colors">Change calendar colors</string>
+    <string name="help_calendar_colors">Changes the color for all calendar apps. Google calendars use the Google palette and sync the color to Google; other calendars keep it on this device only.</string>
+    <string name="restore_colors">Restore device-only colors</string>
+    <string name="help_restore_colors">Puts your colors for Exchange and local calendars back when a sync resets them.</string>
+    <string name="btn_done">Done</string>
+    <string name="colors_google_hint">Google calendar: the color is synced to your Google account.</string>
+    <string name="color_failed">Could not change the color.</string>
+    <string name="color_hex_hint">#RRGGBB</string>
+    <string name="color_free">Own color</string>
+    <string name="btn_apply_color">Set</string>
+    <string name="color_hex_invalid">Format: #RRGGBB</string>
+    <string name="colors_none">This account offers no colors.</string>
     <string name="section_tasks">Tasks</string>
     <string name="show_tasks">Tasks (Google Tasks via Tasks.org)</string>
     <string name="help_tasks">Open tasks from the Tasks.org app, which syncs Google Tasks. Tap a task to open it in Tasks.org.</string>

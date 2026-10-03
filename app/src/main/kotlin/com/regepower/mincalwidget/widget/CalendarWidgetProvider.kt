@@ -14,6 +14,7 @@ import android.content.Intent
 import android.provider.CalendarContract
 import android.provider.ContactsContract
 import com.regepower.mincalwidget.data.Birthdays
+import com.regepower.mincalwidget.data.CalendarColors
 import com.regepower.mincalwidget.data.Tasks
 import com.regepower.mincalwidget.data.WidgetPrefs
 import java.time.LocalDate
@@ -74,6 +75,8 @@ class CalendarWidgetProvider : AppWidgetProvider() {
 /** Redraws all widgets and arms the next refresh triggers. Call from a background thread. */
 object WidgetUpdater {
     fun updateAll(context: Context) {
+        // Device-only calendar colours that a sync adapter reset (Exchange, local).
+        CalendarColors.restore(context)
         val manager = AppWidgetManager.getInstance(context)
         val ids = manager.getAppWidgetIds(ComponentName(context, CalendarWidgetProvider::class.java))
         if (ids.isEmpty()) {
