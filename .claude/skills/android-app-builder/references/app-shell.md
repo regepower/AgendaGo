@@ -1,6 +1,17 @@
 # App shell shared by all our apps (header, help, config save/load)
 
-User decision (MinDNSChanger, Oct 2026): every app gets the same top row. Reference implementation: `regepower/MinDNSChanger` → `Ui.kt` (`appHeader`, `iconButton`), `ConfigIO.kt`, `MainActivity.kt` (`saveConfig/loadConfig/showHelp`).
+User decision (MinDNSChanger, Oct 2026): every app gets the same top row; rolled out to BootDelay, MinCalSync, MinCalWidget, MinDNSChanger.
+
+**Drop-in:** copy `AppShell.kt` + `ConfigIO.kt` from `regepower/BootDelay` (change only the package line), the vectors `ic_save/ic_load/ic_help`, the strings `help, help_ok, help_text, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error` (EN + DE), then:
+```kotlin
+root.addView(AppShell.header(this))            // first row of the screen
+override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    @Suppress("DEPRECATION")
+    super.onActivityResult(requestCode, resultCode, data)
+    AppShell.onResult(this, requestCode, resultCode, data, prefs.sp, Prefs.DEVICE_KEYS::contains) { /* re-apply */ recreate() }
+}
+```
+Keep predicates in use: BootDelay boot counter keys, MinCalSync source/target calendar IDs + last result, MinCalWidget `*.cals` / `*.tasklists`. Existing app code stays untouched apart from the header row.
 
 ## Header row
 - Left: app name, 24sp, bold, `md_on_container`, weight 1.
@@ -18,7 +29,7 @@ User decision (MinDNSChanger, Oct 2026): every app gets the same top row. Refere
 
 ## Config save/load (no permission)
 - Storage Access Framework: save = `ACTION_CREATE_DOCUMENT` (`application/json`, `EXTRA_TITLE "<AppName>.json"`), load = `ACTION_OPEN_DOCUMENT` (`*/*` + `EXTRA_MIME_TYPES` json/text/octet-stream, because file managers often tag .json wrongly). Write with `openOutputStream(uri, "wt")` (truncate!).
-- `ConfigIO.kt` is generic — copy unchanged: exports all entries of one SharedPreferences file with type tags (`b/i/l/f/s/ss`) plus `"app"` name and `"format": 1`; import validates the whole file first (wrong app, broken JSON or unknown type → false, nothing changed), then `clear()` + typed puts + `commit()`.
+- `ConfigIO.kt` is generic — copy unchanged: exports all entries of one SharedPreferences file with type tags (`b/i/l/f/s/ss`) plus `"app"` name and `"format": 1`; import validates the whole file first (wrong app, broken JSON or unknown type → false, nothing changed), then removes all non-kept keys + typed puts + `commit()`. `keep: (String) -> Boolean` marks device-specific keys (neither exported nor overwritten).
 - Expose the app's store (`Prefs.sp`). Do not export device-specific state (boot counters, calendar IDs that differ per phone) — keep those in a second prefs file or skip their keys.
 - After import: re-apply running services (e.g. restart the VPN), then `recreate()`.
 - Tested on the JVM with a fake `SharedPreferences` and org.json built from GitHub source (Maven Central and Google Maven are blocked in the sandbox): round trip, wrong app, broken JSON, unknown type.
