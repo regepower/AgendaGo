@@ -511,6 +511,7 @@ class SettingsActivity : Activity() {
             },
         )
 
+        var freeField: EditText? = null
         if (free) {
             val preview =
                 ImageView(this).apply {
@@ -545,24 +546,23 @@ class SettingsActivity : Activity() {
                         },
                     )
                 }
+            // Same size and inset as the palette swatches, so the row lines up with the grid.
+            preview.setPadding(px(4), px(4), px(4), px(4))
+            field.minEms = HEX_EMS
             val row = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-            row.addView(TextView(this).apply { text = getString(R.string.color_free) })
-            row.addView(preview, LinearLayout.LayoutParams(px(24), px(24)).apply { marginStart = px(12) })
-            row.addView(field, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = px(8) })
+            row.addView(preview, LinearLayout.LayoutParams(size, size))
             row.addView(
-                button(R.string.btn_apply_color) {
-                    val color = parseHex(field.text.toString())
-                    if (color == null) {
-                        field.error = getString(R.string.color_hex_invalid)
-                    } else {
-                        choose(PaletteColor(null, color))
-                    }
-                },
+                field,
                 LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
                     marginStart =
                         px(8)
                 },
             )
+            row.addView(
+                TextView(this).apply { text = getString(R.string.color_free) },
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = px(8) },
+            )
+            freeField = field
             content.addView(row, fullWidth(top = 12))
         }
 
@@ -570,13 +570,29 @@ class SettingsActivity : Activity() {
             content.addView(TextView(this).apply { text = getString(R.string.colors_none) }, fullWidth(top = 8))
         }
 
-        dialog =
+        val builder =
             AlertDialog
                 .Builder(this)
                 .setTitle(prettyName(calendar.name))
                 .setView(cappedScroller(content))
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
+        val field = freeField
+        if (field == null) {
+            builder.setNegativeButton(android.R.string.cancel, null)
+        } else {
+            // Dialog button order is [negative][positive]: "Set" sits left of "Cancel".
+            builder.setNegativeButton(R.string.btn_apply_color, null).setPositiveButton(android.R.string.cancel, null)
+        }
+        val shown = builder.show()
+        dialog = shown
+        // Own listener, so an invalid hex value keeps the dialog open.
+        shown.getButton(AlertDialog.BUTTON_NEGATIVE).takeIf { field != null }?.setOnClickListener {
+            val color = parseHex(field?.text?.toString())
+            if (color == null) {
+                field?.error = getString(R.string.color_hex_invalid)
+            } else {
+                choose(PaletteColor(null, color))
+            }
+        }
     }
 
     private fun hex(color: Int) = String.format(Locale.ROOT, "#%06X", color and RGB_MASK)
@@ -1077,6 +1093,7 @@ class SettingsActivity : Activity() {
         private const val SWATCH_DP = 44
         private const val RGB_MASK = 0xFFFFFF
         private const val HEX_DIGITS = 6
+        private const val HEX_EMS = 5
         private const val HEX_LENGTH = 7
         private const val HEX_RADIX = 16
         private const val DISABLED_ALPHA = 0.5f
