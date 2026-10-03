@@ -8,6 +8,9 @@
   - `values-v31/` (light): primary=`system_accent1_600`, on_primary=`system_accent1_0`, container=`system_accent1_100`, on_container=`system_accent1_900`, surface=`system_neutral1_10`, outline=`system_neutral2_500`.
   - `values-night-v31/`: primary=`system_accent1_200`, on_primary=`_800`, container=`_700`, on_container=`_100`, surface=`system_neutral1_900`, outline=`system_neutral2_600`.
 
+- **Text colours** (user found grey text hard to read on HyperOS): add `md_on_surface` (`system_neutral1_900` / night `_100`) and `md_on_surface_variant` (`system_neutral2_700` / night `_200`); theme items `android:textColor` + `textColorPrimary` = on_surface, `textColorSecondary` = on_surface_variant. Secondary/hint text uses `md_on_surface_variant` — never `alpha 0.6–0.7` on default text, never `md_outline` for text.
+- **Foreground-service notification**: title only (e.g. "DNS aktiv: HaGeZi"), no content text — then HyperOS shows the action button (Stop) without expanding the notification.
+
 ## Widgets
 - Buttons: one shape drawable `bg_btn` (ripple + rounded rect, solid white) tinted in code via `backgroundTintList`; text color from tokens; `isAllCaps=false`, `stateListAnimator=null`, `minimumHeight=40dp`. Filled = primary/on_primary (main action), tonal = container/on_container (OK state, add " ✓" to the label), error = error_container (missing permission).
 - Cards: `bg_card` = surface fill + 1dp outline stroke + 16dp corners; on the container view `setBackgroundResource` + `clipToOutline = true`.
