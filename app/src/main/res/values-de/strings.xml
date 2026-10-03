@@ -3,7 +3,6 @@
     <string name="widget_label">Nächste Termine</string>
     <string name="widget_description">Deine nächsten Kalendertermine als kompakte Liste.</string>
 
-    <string name="title_settings">Widget-Einstellungen</string>
     <string name="perm_missing">Für die Anzeige der Termine wird Kalenderzugriff benötigt.</string>
     <string name="btn_allow">Kalenderzugriff erlauben</string>
 
@@ -83,4 +82,13 @@
     <string name="preview_title_2">Team-Meeting</string>
     <string name="preview_location_2">Raum 2</string>
     <string name="preview_title_3">Geburtstag Anna</string>
+    <string name="help">Hilfe</string>
+    <string name="help_ok">Verstanden</string>
+    <string name="cfg_save">Konfiguration speichern</string>
+    <string name="cfg_load">Konfiguration laden</string>
+    <string name="cfg_saved">Konfiguration gespeichert</string>
+    <string name="cfg_loaded">Konfiguration geladen</string>
+    <string name="cfg_invalid">Keine gültige MinCalWidget-Konfiguration</string>
+    <string name="cfg_error">Datei konnte nicht geschrieben werden</string>
+    <string name="help_text"><b>Was macht die App?</b>\nEin kompaktes Agenda-Widget für den Startbildschirm: kommende Termine, Geburtstage und Aufgaben, je eine Zeile.\n\n<b>Einrichtung</b>\n1. Kalenderzugriff erlauben.\n2. Widget hinzufügen (Button unten oder Startbildschirm lange drücken → Widgets). Widget lange drücken öffnet diese Einstellungen wieder.\n3. Kalender, Anzahl Termine und Tage wählen.\n\n<b>Geburtstage</b>\nDirekt aus den Kontakten gelesen (Kontaktzugriff nötig), mit Alter, wenn das Jahr bekannt ist.\n\n<b>Aufgaben</b>\nOffene Google Tasks über die App Tasks.org (ab Version 15.12). Anzuzeigende Aufgabenlisten wählbar. Antippen öffnet die Aufgabe in Tasks.org.\n\n<b>Kalenderfarben</b>\nGoogle-Kalender nutzen die Google-Palette und übertragen die Farbe zu Google. Exchange- und lokale Kalender behalten sie nur auf diesem Gerät; „Gerätefarben wiederherstellen“ setzt sie nach einem Abgleich wieder.\n\n<b>Darstellung</b>\nSchrift, Größe, Breite der Tagesspalte, transparenter Hintergrund und invertierte Farben. Die Vorschau zeigt das Ergebnis sofort.\n\n<b>Speichern / Laden</b>\nDie Symbole oben sichern alle Widget-Einstellungen in eine Datei und stellen sie wieder her, z. B. auf einem neuen Handy. Gewählte Kalender und Aufgabenlisten sind gerätespezifisch und nicht enthalten.</string>
 </resources>
