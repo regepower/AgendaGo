@@ -91,4 +91,7 @@
     <string name="btn_apply_color">Setzen</string>
     <string name="color_hex_invalid">Format: #RRGGBB</string>
     <string name="colors_none">Dieses Konto bietet keine Farben an.</string>
+    <string name="color_hue">Farbton</string>
+    <string name="color_saturation">Sättigung</string>
+    <string name="color_brightness">Helligkeit</string>
 </resources>

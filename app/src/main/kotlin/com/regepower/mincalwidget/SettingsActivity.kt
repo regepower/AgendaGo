@@ -8,7 +8,9 @@ import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
@@ -48,6 +50,7 @@ import com.regepower.mincalwidget.widget.CalendarWidgetProvider
 import com.regepower.mincalwidget.widget.WidgetRenderer
 import com.regepower.mincalwidget.widget.WidgetUpdater
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /**
  * Widget settings. Opened by the launcher when a widget is placed or reconfigured (with a
@@ -517,11 +520,28 @@ class SettingsActivity : Activity() {
                 ImageView(this).apply {
                     setImageResource(R.drawable.dot)
                     setColorFilter(current)
+                    // Same size and inset as the palette swatches, so the row lines up with the grid.
+                    setPadding(px(4), px(4), px(4), px(4))
                 }
+            val hsv = FloatArray(HSV_PARTS).also { Color.colorToHSV(current, it) }
+            val bars = mutableListOf<SeekBar>()
+            var syncing = false
+
+            /** Gradients show what each slider does with the other two values fixed. */
+            fun paintBars() {
+                val hues = IntArray(HUE_STOPS) { Color.HSVToColor(floatArrayOf(it * HUE_MAX / (HUE_STOPS - 1), 1f, 1f)) }
+                val sat = intArrayOf(Color.HSVToColor(floatArrayOf(hsv[0], 0f, hsv[2])), Color.HSVToColor(floatArrayOf(hsv[0], 1f, hsv[2])))
+                val value = intArrayOf(Color.BLACK, Color.HSVToColor(floatArrayOf(hsv[0], hsv[1], 1f)))
+                listOf(hues, sat, value).forEachIndexed { i, colors ->
+                    bars[i].progressDrawable =
+                        GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, colors).apply { cornerRadius = px(4).toFloat() }
+                }
+            }
             val field =
                 EditText(this).apply {
                     hint = getString(R.string.color_hex_hint)
                     setText(hex(current))
+                    minEms = HEX_EMS
                     inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
                     filters = arrayOf(InputFilter.LengthFilter(HEX_LENGTH))
                     addTextChangedListener(
@@ -541,29 +561,76 @@ class SettingsActivity : Activity() {
                             ) = Unit
 
                             override fun afterTextChanged(s: Editable?) {
-                                parseHex(s?.toString())?.let { preview.setColorFilter(it) }
+                                if (syncing) return
+                                val color = parseHex(s?.toString()) ?: return
+                                preview.setColorFilter(color)
+                                Color.colorToHSV(color, hsv)
+                                bars.forEachIndexed { i, bar -> bar.progress = (hsv[i] * HSV_SCALE[i]).roundToInt() }
+                                paintBars()
                             }
                         },
                     )
                 }
-            // Same size and inset as the palette swatches, so the row lines up with the grid.
-            preview.setPadding(px(4), px(4), px(4), px(4))
-            field.minEms = HEX_EMS
             val row = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
             row.addView(preview, LinearLayout.LayoutParams(size, size))
             row.addView(
                 field,
                 LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                    marginStart =
-                        px(8)
+                    marginStart = px(8)
                 },
             )
             row.addView(
                 TextView(this).apply { text = getString(R.string.color_free) },
                 LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = px(8) },
             )
-            freeField = field
             content.addView(row, fullWidth(top = 12))
+
+            for ((i, label) in listOf(R.string.color_hue, R.string.color_saturation, R.string.color_brightness).withIndex()) {
+                val bar =
+                    SeekBar(this).apply {
+                        max = HSV_SCALE[i].toInt()
+                        progress = (hsv[i] * HSV_SCALE[i]).roundToInt()
+                        minHeight = px(BAR_DP)
+                        maxHeight = px(BAR_DP)
+                        contentDescription = getString(label)
+                        tooltipText = getString(label)
+                        setOnSeekBarChangeListener(
+                            object : SeekBar.OnSeekBarChangeListener {
+                                override fun onProgressChanged(
+                                    seekBar: SeekBar,
+                                    progress: Int,
+                                    fromUser: Boolean,
+                                ) {
+                                    if (!fromUser) return
+                                    hsv[i] = progress / HSV_SCALE[i]
+                                    val color = Color.HSVToColor(hsv)
+                                    preview.setColorFilter(color)
+                                    syncing = true
+                                    field.setText(hex(color))
+                                    field.setSelection(field.length())
+                                    syncing = false
+                                    paintBars()
+                                }
+
+                                override fun onStartTrackingTouch(seekBar: SeekBar) = Unit
+
+                                override fun onStopTrackingTouch(seekBar: SeekBar) = Unit
+                            },
+                        )
+                    }
+                bars += bar
+                content.addView(
+                    TextView(this).apply {
+                        text = getString(label)
+                        textSize = 12f
+                        setTextColor(getColor(R.color.md_on_surface_variant))
+                    },
+                    fullWidth(top = 8),
+                )
+                content.addView(bar, fullWidth(top = 2))
+            }
+            paintBars()
+            freeField = field
         }
 
         if (palette.isEmpty() && !free) {
@@ -1094,6 +1161,13 @@ class SettingsActivity : Activity() {
         private const val RGB_MASK = 0xFFFFFF
         private const val HEX_DIGITS = 6
         private const val HEX_EMS = 5
+        private const val HSV_PARTS = 3
+        private const val HUE_MAX = 360f
+        private const val HUE_STOPS = 7
+        private const val BAR_DP = 8
+
+        /** Slider steps per HSV component: hue in degrees, saturation and brightness in percent. */
+        private val HSV_SCALE = floatArrayOf(HUE_MAX, 100f, 100f)
         private const val HEX_LENGTH = 7
         private const val HEX_RADIX = 16
         private const val DISABLED_ALPHA = 0.5f
