@@ -51,7 +51,7 @@ Same top row everywhere: app name large + bold, then icons **save config**, **lo
 
 ## App icon
 
-Adaptive vector icon (background colour + foreground vector + monochrome for themed icons) plus a separate white notification glyph; no PNGs. Fill the r = 33 safe zone (the visible area is only the centre 72 of 108 units) with a **filled** main shape — thin outlines scaled to ~0.83 looked too small next to other apps. Every app gets its own background colour. Preview drafts as a contact sheet before building the chosen one: `references/app-icon.md`.
+Adaptive vector icon (background colour + foreground vector + monochrome for themed icons) plus a separate white notification glyph; no PNGs. Fill the r = 33 safe zone (the visible area is only the centre 72 of 108 units) — artwork scaled to ~0.83 looked too small next to other apps; scale ~1.0 and enlarge the inner glyph instead. Every app gets its own background colour. Preview drafts as a contact sheet before building the chosen one: `references/app-icon.md`.
 
 ## Localization
 

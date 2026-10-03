@@ -14,10 +14,10 @@ With minSdk ≥ 26 (here 29) one XML set replaces all launcher PNGs. Measured co
 - Offer 4–6 numbered drafts in one contact sheet (large rounded square + small circle + caption) and let the user choose by number and colour; then build only the chosen one.
 
 ## Size: use the safe zone, prefer filled shapes
-The only rule is the safe zone (Android adaptive icons: 108dp layer, 72dp visible, 66dp diameter guaranteed). Our first icons (scale 0.83, outlines) used only ~60 % of it and looked small next to e.g. Zepp. MinDNSChanger fix: shield path touching r ≈ 33 at scale 1.0, **filled** in the accent colour, inner glyph drawn in the background colour (`@color/ic_launcher_background` works as `strokeColor`) and scaled ×1.3. The themed (monochrome) icon only uses alpha, so it keeps the outline variant.
+The only rule is the safe zone (Android adaptive icons: 108dp layer, 72dp visible, 66dp diameter guaranteed). Our first icons (scale 0.83) used only ~60 % of it and looked small next to e.g. Zepp. MinDNSChanger fix: keep the drawn style (outline shield + white globe), scale the outer shape to 1.0 so it touches r ≈ 33, and the inner glyph ×1.15. A filled-shield variant was drafted and rejected by the user: change size and colour, not the style.
 
 ## Colours in use (keep them distinct)
-BootDelay `#B10010` (red) · MinCalSync indigo · MinCalWidget teal · MinDNSChanger `#5B2A86` (violet, chosen from violet/petrol/dark blue/anthracite drafts). Accent `#FFC857` (amber) on all.
+BootDelay `#B10010` (red) · MinCalSync indigo · MinCalWidget teal · MinDNSChanger `#5B2A86` (violet). Accent `#FFC857` (amber) on all.
 
 ## After installing
 Launchers cache icons: if the old icon stays after an update, uninstall and reinstall once. Themed icons only appear when the user enables "Themed icons" in the wallpaper/launcher settings (Android 13+).
