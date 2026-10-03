@@ -8,6 +8,10 @@
         <!-- No title/action bar: the app draws its own header row. -->
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
+        <!-- Default text colours from Material You tokens (DeviceDefault text was a low-contrast grey). -->
+        <item name="android:textColor">@color/md_on_surface</item>
+        <item name="android:textColorPrimary">@color/md_on_surface</item>
+        <item name="android:textColorSecondary">@color/md_on_surface_variant</item>
     </style>
 
     <style name="AppTheme" parent="Base.AppTheme">

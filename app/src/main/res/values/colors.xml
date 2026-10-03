@@ -22,4 +22,7 @@
     <color name="w_text2_inv">@android:color/system_neutral2_200</color>
 
     <color name="ic_launcher_background">#00796B</color>
+    <!-- Text on surface (primary) and secondary text: readable contrast. -->
+    <color name="md_on_surface">@android:color/system_neutral1_900</color>
+    <color name="md_on_surface_variant">@android:color/system_neutral2_700</color>
 </resources>
