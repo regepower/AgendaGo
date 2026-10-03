@@ -31,6 +31,10 @@ data class WidgetPrefs(
     val fontSizeSp: Int = 14,
     val dateWidthDp: Int = 52,
     val birthdays: Boolean = false,
+    val tasks: Boolean = false,
+    /** Empty = all task lists. */
+    val taskListIds: Set<Long> = emptySet(),
+    val tasksWithoutDate: Boolean = false,
 ) {
     companion object {
         val EVENTS = 1..50
@@ -64,6 +68,11 @@ data class WidgetPrefs(
                 fontSizeSp = sp.getInt(p + "size", d.fontSizeSp).coerceIn(FONT_SIZE),
                 dateWidthDp = sp.getInt(p + "daywidth", d.dateWidthDp).coerceIn(DATE_WIDTH),
                 birthdays = sp.getBoolean(p + "birthdays", d.birthdays),
+                tasks = sp.getBoolean(p + "tasks", d.tasks),
+                taskListIds =
+                    sp.getStringSet(p + "tasklists", null)?.mapNotNull { it.toLongOrNull() }?.toSet()
+                        ?: d.taskListIds,
+                tasksWithoutDate = sp.getBoolean(p + "tasksnodate", d.tasksWithoutDate),
             )
         }
 
@@ -86,6 +95,9 @@ data class WidgetPrefs(
                     .putInt(p + "size", prefs.fontSizeSp)
                     .putInt(p + "daywidth", prefs.dateWidthDp)
                     .putBoolean(p + "birthdays", prefs.birthdays)
+                    .putBoolean(p + "tasks", prefs.tasks)
+                    .putStringSet(p + "tasklists", prefs.taskListIds.map { it.toString() }.toSet())
+                    .putBoolean(p + "tasksnodate", prefs.tasksWithoutDate)
             }
             editor.apply()
         }

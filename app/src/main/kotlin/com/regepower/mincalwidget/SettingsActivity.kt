@@ -4,10 +4,12 @@ import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.appwidget.AppWidgetManager
+import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Typeface
+import android.net.Uri
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.Gravity
@@ -31,6 +33,8 @@ import com.regepower.mincalwidget.data.DateLabels
 import com.regepower.mincalwidget.data.Event
 import com.regepower.mincalwidget.data.EventRepository
 import com.regepower.mincalwidget.data.FontStyle
+import com.regepower.mincalwidget.data.TaskList
+import com.regepower.mincalwidget.data.Tasks
 import com.regepower.mincalwidget.data.WidgetPrefs
 import com.regepower.mincalwidget.widget.CalendarWidgetProvider
 import com.regepower.mincalwidget.widget.WidgetRenderer
@@ -50,6 +54,10 @@ class SettingsActivity : Activity() {
     private lateinit var permissionCard: LinearLayout
     private lateinit var calendarBtn: Button
     private lateinit var birthdaySwitch: CompoundButton
+    private lateinit var tasksSwitch: CompoundButton
+    private lateinit var tasksNoDateSwitch: CompoundButton
+    private lateinit var taskListBtn: Button
+    private var taskLists: List<TaskList> = emptyList()
     private lateinit var previewBox: LinearLayout
 
     private val dp get() = resources.displayMetrics.density
@@ -99,6 +107,13 @@ class SettingsActivity : Activity() {
         if (requestCode == REQUEST_CALENDAR) {
             refreshPermission()
             refreshWidgets()
+        }
+        if (requestCode == REQUEST_TASKS) {
+            val granted = Tasks.permitted(this)
+            prefs = prefs.copy(tasks = granted)
+            tasksSwitch.isChecked = granted
+            updateTaskControls()
+            loadData()
         }
         if (requestCode == REQUEST_CONTACTS) {
             val granted = Birthdays.permitted(this)
@@ -189,6 +204,8 @@ class SettingsActivity : Activity() {
             },
             fullWidth(top = 12),
         )
+
+        root.addView(tasksCard(), fullWidth(top = 12))
 
         root.addView(
             card().apply {
@@ -305,14 +322,90 @@ class SettingsActivity : Activity() {
                 } catch (e: SecurityException) {
                     emptyList<CalendarInfo>() to emptyList<Event>()
                 }
+            val lists = Tasks.lists(this)
             runOnUiThread {
                 if (isFinishing) return@runOnUiThread
                 calendars = cals
                 previewEvents = events
+                taskLists = lists
                 updateCalendarButton()
+                updateTaskListButton()
                 renderPreview()
             }
         }.start()
+    }
+
+    // ---- tasks (Google Tasks via Tasks.org) ----------------------------------------------
+
+    private fun tasksCard() =
+        card().apply {
+            addView(header(R.string.section_tasks))
+            tasksSwitch =
+                switchRow(R.string.show_tasks, prefs.tasks && Tasks.permitted(context)) { on -> onTasksToggled(on) }
+                    .also { it.tooltipText = getString(R.string.help_tasks) }
+            addView(tasksSwitch, fullWidth(top = 4))
+            taskListBtn = button(R.string.task_lists_all) { pickTaskLists() }
+            addView(taskListBtn, fullWidth(top = 4))
+            tasksNoDateSwitch =
+                switchRow(R.string.tasks_without_date, prefs.tasksWithoutDate) {
+                    prefs = prefs.copy(tasksWithoutDate = it)
+                    loadData()
+                }
+            addView(tasksNoDateSwitch, fullWidth(top = 4))
+            updateTaskControls()
+        }
+
+    private fun onTasksToggled(on: Boolean) {
+        when {
+            !on -> {
+                prefs = prefs.copy(tasks = false)
+                updateTaskControls()
+                loadData()
+            }
+            !Tasks.installed(this) -> {
+                tasksSwitch.isChecked = false
+                AlertDialog
+                    .Builder(this)
+                    .setTitle(R.string.show_tasks)
+                    .setMessage(R.string.tasks_install)
+                    .setPositiveButton(R.string.btn_install) { _, _ -> openStore() }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
+            !Tasks.permitted(this) -> requestPermissions(arrayOf(Tasks.PERMISSION), REQUEST_TASKS)
+            else -> {
+                prefs = prefs.copy(tasks = true)
+                updateTaskControls()
+                loadData()
+            }
+        }
+    }
+
+    private fun openStore() {
+        val market = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${Tasks.PACKAGE}"))
+        try {
+            startActivity(market)
+        } catch (e: ActivityNotFoundException) {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=${Tasks.PACKAGE}")))
+        }
+    }
+
+    private fun updateTaskControls() {
+        val on = prefs.tasks && Tasks.permitted(this)
+        taskListBtn.isEnabled = on
+        tasksNoDateSwitch.isEnabled = on
+        taskListBtn.alpha = if (on) 1f else DISABLED_ALPHA
+        updateTaskListButton()
+    }
+
+    private fun updateTaskListButton() {
+        val chosen = taskLists.filter { it.id in prefs.taskListIds }
+        taskListBtn.text =
+            when {
+                prefs.taskListIds.isEmpty() || chosen.isEmpty() -> getString(R.string.task_lists_all)
+                chosen.size <= 2 -> chosen.joinToString(", ") { it.title }
+                else -> resources.getQuantityString(R.plurals.task_lists_some, chosen.size, chosen.size)
+            }
     }
 
     private fun updateCalendarButton() {
@@ -325,34 +418,79 @@ class SettingsActivity : Activity() {
             }
     }
 
-    /**
-     * Own checkbox list in a height-capped ScrollView: the built-in multi-choice dialog list did
-     * not scroll on the test phone (HyperOS), so long calendar lists were cut off.
-     */
+    /** One entry of a picker dialog (calendar or task list). */
+    private class PickItem(
+        val id: Long,
+        val name: String,
+        val account: String,
+        val color: Int,
+        val marker: Int,
+    )
+
     private fun pickCalendars() {
         if (calendars.isEmpty()) {
-            AlertDialog
-                .Builder(this)
-                .setTitle(R.string.pick_calendars_title)
-                .setMessage(if (hasPermission()) R.string.no_calendars else R.string.perm_missing)
-                .setPositiveButton(android.R.string.ok, null)
-                .show()
+            message(R.string.pick_calendars_title, if (hasPermission()) R.string.no_calendars else R.string.perm_missing)
             return
         }
+        val items = calendars.map { PickItem(it.id, prettyName(it.name), prettyAccount(it.account), it.color, R.drawable.dot) }
+        multiPicker(R.string.pick_calendars_title, items, prefs.calendarIds) { ids ->
+            prefs = prefs.copy(calendarIds = ids)
+            updateCalendarButton()
+            loadData()
+        }
+    }
+
+    private fun pickTaskLists() {
+        if (taskLists.isEmpty()) {
+            message(R.string.pick_task_lists_title, R.string.no_task_lists)
+            return
+        }
+        val items =
+            taskLists.map {
+                PickItem(it.id, it.title, it.account, it.color.takeIf { c -> c != 0 } ?: Tasks.DEFAULT_COLOR, R.drawable.task_box)
+            }
+        multiPicker(R.string.pick_task_lists_title, items, prefs.taskListIds) { ids ->
+            prefs = prefs.copy(taskListIds = ids)
+            updateTaskListButton()
+            loadData()
+        }
+    }
+
+    private fun message(
+        title: Int,
+        text: Int,
+    ) {
+        AlertDialog
+            .Builder(this)
+            .setTitle(title)
+            .setMessage(text)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
+    }
+
+    /**
+     * Checkbox list grouped by account in a height-capped ScrollView (the built-in multi-choice
+     * list did not scroll on HyperOS). [selected] empty = all; result empty = all.
+     */
+    private fun multiPicker(
+        title: Int,
+        items: List<PickItem>,
+        selected: Set<Long>,
+        onDone: (Set<Long>) -> Unit,
+    ) {
         val list =
             LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 setPadding(px(16), px(4), px(16), px(8))
             }
-        // Grouped by account (calendars are sorted by account): header, then one row per calendar.
         var account: String? = null
         val boxes =
-            calendars.map { calendar ->
-                if (calendar.account != account) {
-                    account = calendar.account
-                    list.addView(accountHeader(prettyAccount(calendar.account)), fullWidth(top = if (list.childCount == 0) 4 else 12))
+            items.map { item ->
+                if (item.account != account) {
+                    account = item.account
+                    list.addView(accountHeader(item.account), fullWidth(top = if (list.childCount == 0) 4 else 12))
                 }
-                val row = calendarRow(calendar)
+                val row = pickerRow(item, selected.isEmpty() || item.id in selected)
                 list.addView(row.first, fullWidth())
                 row.second
             }
@@ -372,17 +510,12 @@ class SettingsActivity : Activity() {
             }
         AlertDialog
             .Builder(this)
-            .setTitle(R.string.pick_calendars_title)
+            .setTitle(title)
             .setView(scroller)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                val selected = calendars.filterIndexed { i, _ -> boxes[i].isChecked }.map { it.id }.toSet()
-                // Nothing or everything ticked = all calendars (also covers calendars added later).
-                prefs =
-                    prefs.copy(
-                        calendarIds = if (selected.isEmpty() || selected.size == calendars.size) emptySet() else selected,
-                    )
-                updateCalendarButton()
-                loadData()
+                val ids = items.filterIndexed { i, _ -> boxes[i].isChecked }.map { it.id }.toSet()
+                // Nothing or everything ticked = all (also covers entries added later).
+                onDone(if (ids.isEmpty() || ids.size == items.size) emptySet() else ids)
             }.setNegativeButton(android.R.string.cancel, null)
             .show()
     }
@@ -398,12 +531,15 @@ class SettingsActivity : Activity() {
             setPadding(px(4), 0, 0, px(2))
         }
 
-    /** Row: checkbox, colour dot, single-line name. Tapping anywhere on the row toggles it. */
-    private fun calendarRow(calendar: CalendarInfo): Pair<View, CheckBox> {
+    /** Row: checkbox, colour marker, single-line name. Tapping anywhere on the row toggles it. */
+    private fun pickerRow(
+        item: PickItem,
+        checked: Boolean,
+    ): Pair<View, CheckBox> {
         val box =
             CheckBox(this).apply {
                 buttonTintList = ColorStateList.valueOf(getColor(R.color.md_primary))
-                isChecked = prefs.calendarIds.isEmpty() || calendar.id in prefs.calendarIds
+                isChecked = checked
                 isClickable = false
                 isFocusable = false
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
@@ -414,20 +550,20 @@ class SettingsActivity : Activity() {
                 minimumHeight = px(48)
                 background = rippleBackground()
                 isClickable = true
-                contentDescription = prettyName(calendar.name)
+                contentDescription = item.name
                 setOnClickListener { box.isChecked = !box.isChecked }
                 addView(box, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
                 addView(
                     ImageView(context).apply {
-                        setImageResource(R.drawable.dot)
-                        setColorFilter(calendar.color or OPAQUE)
+                        setImageResource(item.marker)
+                        setColorFilter(item.color or OPAQUE)
                         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                     },
                     LinearLayout.LayoutParams(px(12), px(12)).apply { marginStart = px(8) },
                 )
                 addView(
                     TextView(context).apply {
-                        text = prettyName(calendar.name)
+                        text = item.name
                         textSize = 16f
                         maxLines = 1
                         ellipsize = TextUtils.TruncateAt.END
@@ -477,7 +613,10 @@ class SettingsActivity : Activity() {
             val row = layoutInflater.inflate(prefs.font.rowLayout, previewBox, false)
             val label = labels.label(event)
             val location = if (prefs.showLocation) event.location else ""
-            row.findViewById<ImageView>(R.id.dot).setColorFilter(event.color or OPAQUE)
+            row.findViewById<ImageView>(R.id.dot).apply {
+                setImageResource(WidgetRenderer.markerFor(event))
+                setColorFilter(event.color or OPAQUE)
+            }
 
             fun text(
                 id: Int,
@@ -490,7 +629,8 @@ class SettingsActivity : Activity() {
                 setTextColor(getColor(color))
                 if (widthDp != null) layoutParams = layoutParams.apply { width = (widthDp * dp).toInt() }
             }
-            text(R.id.date, label.day, pal.text2, if (label.span) cols.day + cols.time else cols.day)
+            val dayColor = if (labels.isOverdue(event)) R.color.w_overdue else pal.text2
+            text(R.id.date, label.day, dayColor, if (label.span) cols.day + cols.time else cols.day)
             text(R.id.time, label.time, pal.text2, cols.time).visibility = if (label.span) View.GONE else View.VISIBLE
             text(R.id.title, event.title, pal.text)
             text(R.id.location, location, pal.text2).visibility = if (location.isEmpty()) View.GONE else View.VISIBLE
@@ -675,6 +815,8 @@ class SettingsActivity : Activity() {
     companion object {
         private const val REQUEST_CALENDAR = 1
         private const val REQUEST_CONTACTS = 2
+        private const val REQUEST_TASKS = 3
+        private const val DISABLED_ALPHA = 0.5f
         private const val STATE_WIDGET = "widget_id"
         private const val PREVIEW_ROWS = 4
         private const val DIALOG_HEIGHT = 0.6f

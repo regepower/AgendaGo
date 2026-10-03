@@ -14,6 +14,7 @@ import android.content.Intent
 import android.provider.CalendarContract
 import android.provider.ContactsContract
 import com.regepower.mincalwidget.data.Birthdays
+import com.regepower.mincalwidget.data.Tasks
 import com.regepower.mincalwidget.data.WidgetPrefs
 import java.time.LocalDate
 import java.time.ZoneId
@@ -125,6 +126,8 @@ object RefreshScheduler {
         val uris = mutableListOf(CalendarContract.CONTENT_URI)
         // Birthdays: redraw when contacts change (only if access was granted).
         if (Birthdays.permitted(context)) uris += ContactsContract.Contacts.CONTENT_URI
+        // Tasks: Tasks.org notifies below content://org.tasks.api/v0 on every task change.
+        if (Tasks.permitted(context)) uris += Tasks.CHANGE_URI
         val pending = jobs.getPendingJob(JOB_ID)
         if (!force && pending != null && pending.triggerContentUris?.size == uris.size) return
         val builder = JobInfo.Builder(JOB_ID, ComponentName(context, CalendarChangeJob::class.java))

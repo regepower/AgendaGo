@@ -115,6 +115,9 @@ object WidgetRenderer {
         return views
     }
 
+    /** Empty checkbox for tasks, colour dot otherwise. */
+    fun markerFor(event: Event) = if (event.kind == Event.Kind.TASK) R.drawable.task_box else R.drawable.dot
+
     /** Column widths (dp) shared by widget and settings preview. */
     data class Columns(
         val day: Float,
@@ -139,6 +142,7 @@ object WidgetRenderer {
     ) = RemoteViews(context.packageName, prefs.font.rowLayout).apply {
         val size = prefs.fontSizeSp.toFloat()
         val label = labels.label(event)
+        setImageViewResource(R.id.dot, markerFor(event))
         setTextViewText(R.id.date, label.day)
         setTextViewText(R.id.time, label.time)
         setTextViewText(R.id.title, event.title)
@@ -151,7 +155,7 @@ object WidgetRenderer {
         setViewLayoutWidth(R.id.date, dayWidth, TypedValue.COMPLEX_UNIT_DIP)
         setViewLayoutWidth(R.id.time, cols.time, TypedValue.COMPLEX_UNIT_DIP)
         for (id in TEXT_IDS) setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_SP, size)
-        setColor(R.id.date, "setTextColor", pal.text2)
+        setColor(R.id.date, "setTextColor", if (labels.isOverdue(event)) R.color.w_overdue else pal.text2)
         setColor(R.id.time, "setTextColor", pal.text2)
         setColor(R.id.title, "setTextColor", pal.text)
         setColor(R.id.location, "setTextColor", pal.text2)
