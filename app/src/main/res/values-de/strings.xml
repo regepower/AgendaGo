@@ -3,7 +3,6 @@
     <string name="widget_label">Nächste Termine</string>
     <string name="widget_description">Deine nächsten Kalendertermine als kompakte Liste.</string>
 
-    <string name="title_settings">Widget-Einstellungen</string>
     <string name="perm_missing">Für die Anzeige der Termine wird Kalenderzugriff benötigt.</string>
     <string name="btn_allow">Kalenderzugriff erlauben</string>
 
@@ -71,4 +70,13 @@
     <string name="preview_title_2">Team-Meeting</string>
     <string name="preview_location_2">Raum 2</string>
     <string name="preview_title_3">Geburtstag Anna</string>
+    <string name="help">Hilfe</string>
+    <string name="help_ok">Verstanden</string>
+    <string name="cfg_save">Konfiguration speichern</string>
+    <string name="cfg_load">Konfiguration laden</string>
+    <string name="cfg_saved">Konfiguration gespeichert</string>
+    <string name="cfg_loaded">Konfiguration geladen</string>
+    <string name="cfg_invalid">Keine gültige MinCalWidget-Konfiguration</string>
+    <string name="cfg_error">Datei konnte nicht geschrieben werden</string>
+    <string name="help_text"><b>Was macht die App?</b>\nEin Widget für den Startbildschirm mit deinen nächsten Terminen, wahlweise mit Geburtstagen aus den Kontakten und offenen Aufgaben.\n\n<b>Einrichtung</b>\n1. Kalenderzugriff erlauben.\n2. Anzuzeigende Kalender wählen.\n3. „Widget zum Startbildschirm hinzufügen“ oder über die Widget-Liste des Launchers platzieren.\n\n<b>Einstellungen</b>\nAnzahl Termine und Tage, Ort, Schrift, Größe und Farben gelten für das gerade bearbeitete Widget; die Vorschau zeigt das Ergebnis. Antippen eines Termins öffnet ihn im Kalender.\n\n<b>Aufgaben</b>\nOffene Aufgaben kommen aus der kostenlosen App Tasks.org, die Google Tasks synchronisiert.\n\n<b>Speichern / Laden</b>\nDie Symbole oben sichern die Anzeige-Einstellungen in eine Datei und stellen sie wieder her. Kalender und Aufgabenlisten wählst du auf jedem Handy neu.</string>
 </resources>

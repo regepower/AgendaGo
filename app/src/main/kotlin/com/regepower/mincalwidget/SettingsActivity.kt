@@ -92,6 +92,19 @@ class SettingsActivity : Activity() {
         refreshPermission()
     }
 
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?,
+    ) {
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
+        AppShell.onResult(this, requestCode, resultCode, data, WidgetPrefs.store(this), WidgetPrefs::isDeviceKey) {
+            refreshWidgets()
+            show(widgetId)
+        }
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(STATE_WIDGET, widgetId ?: AppWidgetManager.INVALID_APPWIDGET_ID)
@@ -138,14 +151,7 @@ class SettingsActivity : Activity() {
                 orientation = LinearLayout.VERTICAL
                 setPadding(px(16), px(12), px(16), px(16))
             }
-        root.addView(
-            TextView(this).apply {
-                text = getString(R.string.title_settings)
-                textSize = 22f
-                setTypeface(typeface, Typeface.BOLD)
-                setTextColor(getColor(R.color.md_on_container))
-            },
-        )
+        root.addView(AppShell.header(this))
 
         permissionCard =
             card().apply {

@@ -1,6 +1,7 @@
 package com.regepower.mincalwidget.data
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.regepower.mincalwidget.R
 
 /** System font families offered for the widget; each has its own row layout. */
@@ -44,6 +45,12 @@ data class WidgetPrefs(
 
         private const val FILE = "widgets"
         private const val DEFAULT = "d."
+
+        /** Raw store, also used for config export/import. */
+        fun store(context: Context): SharedPreferences = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+
+        /** Calendar and task-list IDs differ per phone: not exported, not overwritten on import. */
+        fun isDeviceKey(key: String) = key.endsWith(".cals") || key.endsWith(".tasklists")
 
         private fun prefix(widgetId: Int?) = if (widgetId == null) DEFAULT else "w$widgetId."
 
