@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="72"
+    android:viewportHeight="72">
+    <!-- Status-bar glyph: same shape, cropped to the centre 72 units of the 108 grid. -->
+    <group
+        android:translateX="-18"
+        android:translateY="-18">
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M54,25 A29,29 0 1 1 25,54"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineCap="round"
+            android:strokeWidth="5.5" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M25,41.6 L14.7,54.5 L35.3,54.5 Z"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineJoin="round"
+            android:strokeWidth="1.5" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M42,45 m-2.6,0 a2.6,2.6 0 1,0 5.2,0 a2.6,2.6 0 1,0 -5.2,0 M42,54 m-2.6,0 a2.6,2.6 0 1,0 5.2,0 a2.6,2.6 0 1,0 -5.2,0 M42,63 m-2.6,0 a2.6,2.6 0 1,0 5.2,0 a2.6,2.6 0 1,0 -5.2,0" />
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M49,45 H67 M49,54 H67 M49,63 H67"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineCap="round"
+            android:strokeWidth="4.5" />
+    </group>
+</vector>

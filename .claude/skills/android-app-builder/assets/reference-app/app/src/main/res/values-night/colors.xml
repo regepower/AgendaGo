@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="md_primary">#A8C7FF</color>
+    <color name="md_on_primary">#05305F</color>
+    <color name="md_container">#214677</color>
+    <color name="md_on_container">#D6E3FF</color>
+    <color name="md_surface">#1A1C1E</color>
+    <color name="md_outline">#8F9099</color>
+    <color name="md_error_container">#93000A</color>
+    <color name="md_on_error_container">#FFDAD6</color>
+</resources>
