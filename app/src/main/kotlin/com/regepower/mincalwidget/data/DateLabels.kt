@@ -26,13 +26,17 @@ class DateLabels(
     )
 
     private val zone: ZoneId = ZoneId.systemDefault()
+    private val now: Long = System.currentTimeMillis()
     private val today: LocalDate = LocalDate.now(zone)
     private val locale = context.resources.configuration.locales[0]
     private val dateFormat = DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "dM"), locale)
     private val timeFormat = DateFormat.getTimeFormat(context)
 
     fun label(event: Event): Label {
+        if (event.undated) return Label("", "", span = false)
         val day = event.startDay(zone)
+        // Overdue tasks keep their real date (shown in red by the renderer).
+        if (event.kind == Event.Kind.TASK && day < today) return Label(day.format(dateFormat), "", span = false)
         val dayText = dayText(day)
         val last = event.lastDay(zone)
         if (last > day && last > today) {
@@ -60,6 +64,8 @@ class DateLabels(
         val widthPx = paint.measureText(timeFormat.format(Date(sample)))
         return widthPx / metrics.density + COLUMN_GAP_DP
     }
+
+    fun isOverdue(event: Event): Boolean = event.overdue(today, now, zone)
 
     private fun dayText(day: LocalDate): String =
         when {

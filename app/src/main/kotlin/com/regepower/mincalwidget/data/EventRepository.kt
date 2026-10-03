@@ -31,7 +31,19 @@ data class Event(
     val color: Int,
     /** What a tap opens; null = the calendar event [eventId]. */
     val link: String? = null,
+    val kind: Kind = Kind.EVENT,
 ) {
+    enum class Kind { EVENT, BIRTHDAY, TASK }
+
+    /** Task without due date (sorted to the end, no date shown). */
+    val undated: Boolean get() = kind == Kind.TASK && begin == 0L
+
+    fun overdue(
+        today: LocalDate,
+        now: Long,
+        zone: ZoneId,
+    ): Boolean = kind == Kind.TASK && !undated && (if (allDay) startDay(zone) < today else begin < now)
+
     /**
      * Calendar day the event starts on. All-day events are stored as UTC midnights, so they
      * must be read in UTC, otherwise they shift by a day depending on the time zone.
@@ -127,27 +139,38 @@ class EventRepository(
             }
         }
         if (prefs.birthdays) events += Birthdays.upcoming(context, today, lastDay)
-        return events
-            .filter { e ->
+        val visible =
+            events.filter { e ->
                 val notOver = if (e.allDay) e.endDayExclusive() > today else e.end > now || e.begin >= now
                 notOver && e.startDay(zone) < lastDay
-            }.sortedWith(compareBy({ sortKey(it, zone) }, { !it.allDay }, { it.title.lowercase() }))
+            }
+        // Tasks are pre-filtered: overdue ones stay, so they are added after the "not over" filter.
+        val tasks = if (prefs.tasks) Tasks.upcoming(context, prefs, lastDay) else emptyList()
+        return (visible + tasks)
+            .sortedWith(compareBy({ sortKey(it, zone, today, now) }, { !it.allDay }, { it.title.lowercase() }))
             .take(prefs.maxEvents)
     }
 
-    /** All-day events sort at local midnight of their day, i.e. before that day's timed events. */
+    /**
+     * All-day rows sort at local midnight of their day (before that day's timed events);
+     * overdue tasks first, undated tasks last.
+     */
     private fun sortKey(
         e: Event,
         zone: ZoneId,
+        today: LocalDate,
+        now: Long,
     ): Long =
-        if (e.allDay) {
-            e
-                .startDay(zone)
-                .atStartOfDay(zone)
-                .toInstant()
-                .toEpochMilli()
-        } else {
-            e.begin
+        when {
+            e.undated -> Long.MAX_VALUE
+            e.overdue(today, now, zone) -> Long.MIN_VALUE + e.startDay(zone).toEpochDay()
+            e.allDay ->
+                e
+                    .startDay(zone)
+                    .atStartOfDay(zone)
+                    .toInstant()
+                    .toEpochMilli()
+            else -> e.begin
         }
 
     companion object {

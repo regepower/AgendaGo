@@ -27,6 +27,19 @@
     <string name="help_birthdays">Shows the next birthdays of your contacts, with age if the year is known. Needs access to contacts.</string>
     <string name="show_location">Show location</string>
 
+    <string name="section_tasks">Tasks</string>
+    <string name="show_tasks">Tasks (Google Tasks via Tasks.org)</string>
+    <string name="help_tasks">Open tasks from the Tasks.org app, which syncs Google Tasks. Tap a task to open it in Tasks.org.</string>
+    <string name="task_lists_all">All task lists</string>
+    <plurals name="task_lists_some">
+        <item quantity="one">%1$d list</item>
+        <item quantity="other">%1$d lists</item>
+    </plurals>
+    <string name="pick_task_lists_title">Show tasks from</string>
+    <string name="no_task_lists">No task lists found. Set up Google Tasks in Tasks.org first.</string>
+    <string name="tasks_without_date">Tasks without due date</string>
+    <string name="tasks_install">Tasks are read from the free app Tasks.org, which syncs your Google Tasks. Install it, sign in with your Google account there and switch this on again.</string>
+    <string name="btn_install">Install</string>
     <string name="section_appearance">Appearance</string>
     <string name="label_font">Font</string>
     <string name="font_sans">Standard</string>

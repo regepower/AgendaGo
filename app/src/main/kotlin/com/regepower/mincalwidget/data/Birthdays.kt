@@ -59,6 +59,7 @@ object Birthdays {
                         location = "",
                         color = COLOR,
                         link = Contacts.getLookupUri(contactId, c.getString(1)).toString(),
+                        kind = Event.Kind.BIRTHDAY,
                     )
             }
         }

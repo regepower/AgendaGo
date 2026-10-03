@@ -26,6 +26,19 @@
     <string name="help_birthdays">Zeigt die nächsten Geburtstage deiner Kontakte, mit Alter, wenn das Jahr bekannt ist. Benötigt Zugriff auf die Kontakte.</string>
     <string name="show_location">Ort anzeigen</string>
 
+    <string name="section_tasks">Aufgaben</string>
+    <string name="show_tasks">Aufgaben (Google Tasks über Tasks.org)</string>
+    <string name="help_tasks">Offene Aufgaben aus der App Tasks.org, die Google Tasks synchronisiert. Antippen öffnet die Aufgabe in Tasks.org.</string>
+    <string name="task_lists_all">Alle Aufgabenlisten</string>
+    <plurals name="task_lists_some">
+        <item quantity="one">%1$d Liste</item>
+        <item quantity="other">%1$d Listen</item>
+    </plurals>
+    <string name="pick_task_lists_title">Aufgaben anzeigen aus</string>
+    <string name="no_task_lists">Keine Aufgabenlisten gefunden. Zuerst Google Tasks in Tasks.org einrichten.</string>
+    <string name="tasks_without_date">Aufgaben ohne Fälligkeitsdatum</string>
+    <string name="tasks_install">Aufgaben werden aus der kostenlosen App Tasks.org gelesen, die deine Google Tasks synchronisiert. Installieren, dort mit dem Google-Konto anmelden und hier erneut einschalten.</string>
+    <string name="btn_install">Installieren</string>
     <string name="section_appearance">Darstellung</string>
     <string name="label_font">Schriftart</string>
     <string name="font_sans">Standard</string>
