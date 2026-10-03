@@ -10,6 +10,9 @@ User decision (MinDNSChanger, Oct 2026): every app gets the same top row. Refere
   - save: `M19,9h-4V3H9v6H5l7,7 7,-7zM5,18v2h14v-2H5z` · load: `M9,16h6v-6h4l-7,-7 -7,7h4zM5,18h14v2H5z`
   - add: `M19,13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z` · remove: `M19,13H5v-2h14v2z`
 
+- **No window title bar**: `Base.AppTheme` sets `android:windowActionBar=false` + `android:windowNoTitle=true` (DeviceDefault otherwise shows a small app-name bar above our header). Secondary screens then draw their own bold title (22sp).
+- Picker dialogs: two-line items — name on line 1, details on line 2 via `SpannableString` with `RelativeSizeSpan(0.75f)` + `ForegroundColorSpan(md_outline)` passed to `setSingleChoiceItems`.
+
 ## Help
 `AlertDialog` with `setMessage(getText(R.string.help_text))`; `help_text` uses `<b>` section titles and `\n` line breaks, EN + DE. Sections: what the app does, setup steps, each feature in 1–2 sentences, OEM caveats, save/load. Button `help_ok` ("Verstanden"). MinCalSync also opens help automatically on first start (nothing configured yet).
 
