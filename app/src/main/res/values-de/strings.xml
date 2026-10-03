@@ -25,18 +25,6 @@
     <string name="help_birthdays">Zeigt die nächsten Geburtstage deiner Kontakte, mit Alter, wenn das Jahr bekannt ist. Benötigt Zugriff auf die Kontakte.</string>
     <string name="show_location">Ort anzeigen</string>
 
-    <string name="btn_calendar_colors">Kalenderfarben ändern</string>
-    <string name="help_calendar_colors">Ändert die Farbe für alle Kalender-Apps. Google-Kalender nutzen die Google-Palette und übertragen die Farbe zu Google; andere Kalender behalten sie nur auf diesem Gerät.</string>
-    <string name="restore_colors">Gerätefarben wiederherstellen</string>
-    <string name="help_restore_colors">Setzt deine Farben für Exchange- und lokale Kalender wieder, wenn ein Abgleich sie zurücksetzt.</string>
-    <string name="btn_done">Fertig</string>
-    <string name="colors_google_hint">Google-Kalender: Die Farbe wird mit deinem Google-Konto synchronisiert.</string>
-    <string name="color_failed">Farbe konnte nicht geändert werden.</string>
-    <string name="color_hex_hint">#RRGGBB</string>
-    <string name="color_free">Eigene Farbe</string>
-    <string name="btn_apply_color">Setzen</string>
-    <string name="color_hex_invalid">Format: #RRGGBB</string>
-    <string name="colors_none">Dieses Konto bietet keine Farben an.</string>
     <string name="section_tasks">Aufgaben</string>
     <string name="show_tasks">Aufgaben (Google Tasks über Tasks.org)</string>
     <string name="help_tasks">Offene Aufgaben aus der App Tasks.org, die Google Tasks synchronisiert. Antippen öffnet die Aufgabe in Tasks.org.</string>
@@ -90,5 +78,5 @@
     <string name="cfg_loaded">Konfiguration geladen</string>
     <string name="cfg_invalid">Keine gültige MinCalWidget-Konfiguration</string>
     <string name="cfg_error">Datei konnte nicht geschrieben werden</string>
-    <string name="help_text"><b>Was macht die App?</b>\nEin kompaktes Agenda-Widget für den Startbildschirm: kommende Termine, Geburtstage und Aufgaben, je eine Zeile.\n\n<b>Einrichtung</b>\n1. Kalenderzugriff erlauben.\n2. Widget hinzufügen (Button unten oder Startbildschirm lange drücken → Widgets). Widget lange drücken öffnet diese Einstellungen wieder.\n3. Kalender, Anzahl Termine und Tage wählen.\n\n<b>Geburtstage</b>\nDirekt aus den Kontakten gelesen (Kontaktzugriff nötig), mit Alter, wenn das Jahr bekannt ist.\n\n<b>Aufgaben</b>\nOffene Google Tasks über die App Tasks.org (ab Version 15.12). Anzuzeigende Aufgabenlisten wählbar. Antippen öffnet die Aufgabe in Tasks.org.\n\n<b>Kalenderfarben</b>\nGoogle-Kalender nutzen die Google-Palette und übertragen die Farbe zu Google. Exchange- und lokale Kalender behalten sie nur auf diesem Gerät; „Gerätefarben wiederherstellen“ setzt sie nach einem Abgleich wieder.\n\n<b>Darstellung</b>\nSchrift, Größe, Breite der Tagesspalte, transparenter Hintergrund und invertierte Farben. Die Vorschau zeigt das Ergebnis sofort.\n\n<b>Speichern / Laden</b>\nDie Symbole oben sichern alle Widget-Einstellungen in eine Datei und stellen sie wieder her, z. B. auf einem neuen Handy. Gewählte Kalender und Aufgabenlisten sind gerätespezifisch und nicht enthalten.</string>
+    <string name="help_text"><b>Was macht die App?</b>\nEin Widget für den Startbildschirm mit deinen nächsten Terminen, wahlweise mit Geburtstagen aus den Kontakten und offenen Aufgaben.\n\n<b>Einrichtung</b>\n1. Kalenderzugriff erlauben.\n2. Anzuzeigende Kalender wählen.\n3. „Widget zum Startbildschirm hinzufügen“ oder über die Widget-Liste des Launchers platzieren.\n\n<b>Einstellungen</b>\nAnzahl Termine und Tage, Ort, Schrift, Größe und Farben gelten für das gerade bearbeitete Widget; die Vorschau zeigt das Ergebnis. Antippen eines Termins öffnet ihn im Kalender.\n\n<b>Aufgaben</b>\nOffene Aufgaben kommen aus der kostenlosen App Tasks.org, die Google Tasks synchronisiert.\n\n<b>Kalenderfarben</b>\nGoogle-Kalender nutzen die Google-Palette und übertragen die Farbe zu Google. Exchange- und lokale Kalender behalten sie nur auf diesem Gerät; „Gerätefarben wiederherstellen“ setzt sie nach einem Abgleich wieder.\n\n<b>Speichern / Laden</b>\nDie Symbole oben sichern die Anzeige-Einstellungen in eine Datei und stellen sie wieder her. Kalender und Aufgabenlisten wählst du auf jedem Handy neu.</string>
 </resources>

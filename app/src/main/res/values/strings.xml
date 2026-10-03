@@ -26,18 +26,6 @@
     <string name="help_birthdays">Shows the next birthdays of your contacts, with age if the year is known. Needs access to contacts.</string>
     <string name="show_location">Show location</string>
 
-    <string name="btn_calendar_colors">Change calendar colors</string>
-    <string name="help_calendar_colors">Changes the color for all calendar apps. Google calendars use the Google palette and sync the color to Google; other calendars keep it on this device only.</string>
-    <string name="restore_colors">Restore device-only colors</string>
-    <string name="help_restore_colors">Puts your colors for Exchange and local calendars back when a sync resets them.</string>
-    <string name="btn_done">Done</string>
-    <string name="colors_google_hint">Google calendar: the color is synced to your Google account.</string>
-    <string name="color_failed">Could not change the color.</string>
-    <string name="color_hex_hint">#RRGGBB</string>
-    <string name="color_free">Own color</string>
-    <string name="btn_apply_color">Set</string>
-    <string name="color_hex_invalid">Format: #RRGGBB</string>
-    <string name="colors_none">This account offers no colors.</string>
     <string name="section_tasks">Tasks</string>
     <string name="show_tasks">Tasks (Google Tasks via Tasks.org)</string>
     <string name="help_tasks">Open tasks from the Tasks.org app, which syncs Google Tasks. Tap a task to open it in Tasks.org.</string>
@@ -102,5 +90,5 @@
     <string name="cfg_loaded">Configuration loaded</string>
     <string name="cfg_invalid">Not a valid MinCalWidget configuration</string>
     <string name="cfg_error">File could not be written</string>
-    <string name="help_text"><b>What does the app do?</b>\nA compact agenda widget for the home screen: upcoming events, birthdays and tasks, one line each.\n\n<b>Setup</b>\n1. Allow calendar access.\n2. Add the widget (button below or long-press the home screen → Widgets). Long-press the widget to open these settings again.\n3. Choose calendars, number of events and days.\n\n<b>Birthdays</b>\nRead directly from your contacts (needs contacts access), with age if the year is known.\n\n<b>Tasks</b>\nOpen Google Tasks via the Tasks.org app (version 15.12 or newer). Choose which task lists to show. Tapping a task opens it in Tasks.org.\n\n<b>Calendar colors</b>\nGoogle calendars use the Google palette and send the color to Google. Exchange and local calendars keep it on this device only; \"Restore device-only colors\" puts it back after a sync resets it.\n\n<b>Appearance</b>\nFont, size, day column width, transparent background and inverted colors. The preview shows the result immediately.\n\n<b>Save / load</b>\nThe icons at the top store all widget settings in a file and restore them, e.g. on a new phone. Selected calendars and task lists are device-specific and are not included.</string>
+    <string name="help_text"><b>What does the app do?</b>\nA home-screen widget with your next appointments, optionally with contact birthdays and open tasks.\n\n<b>Setup</b>\n1. Allow calendar access.\n2. Choose the calendars to show.\n3. \"Add widget to home screen\" or place it via the launcher widget list.\n\n<b>Settings</b>\nNumber of events and days, location, font, size and colours apply to the widget being edited; the preview shows the result. Tapping an event opens it in the calendar.\n\n<b>Tasks</b>\nOpen tasks are read from the free app Tasks.org, which syncs Google Tasks.\n\n<b>Calendar colors</b>\nGoogle calendars use the Google palette and send the color to Google. Exchange and local calendars keep it on this device only; \"Restore device-only colors\" puts it back after a sync resets it.\n\n<b>Save / load</b>\nThe icons at the top store the display settings in a file and restore them. Calendars and task lists are chosen again on each phone.</string>
 </resources>

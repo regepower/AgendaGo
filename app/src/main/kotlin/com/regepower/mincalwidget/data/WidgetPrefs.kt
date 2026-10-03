@@ -46,10 +46,10 @@ data class WidgetPrefs(
         private const val FILE = "widgets"
         private const val DEFAULT = "d."
 
-        /** The whole settings store (all widgets + defaults), exported by the header's save/load. */
+        /** Raw store, also used for config export/import. */
         fun store(context: Context): SharedPreferences = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
-        /** Calendar and task list IDs differ per phone: neither exported nor overwritten. */
+        /** Calendar and task-list IDs differ per phone: not exported, not overwritten on import. */
         fun isDeviceKey(key: String) = key.endsWith(".cals") || key.endsWith(".tasklists")
 
         private fun prefix(widgetId: Int?) = if (widgetId == null) DEFAULT else "w$widgetId."

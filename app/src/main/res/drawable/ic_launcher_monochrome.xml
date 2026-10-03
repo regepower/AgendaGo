@@ -5,14 +5,21 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#00000000"
-        android:pathData="M38,38 H70 A4,4 0 0 1 74,42 V70 A4,4 0 0 1 70,74 H38 A4,4 0 0 1 34,70 V42 A4,4 0 0 1 38,38 Z M34,48 H74 M44,34 V42 M64,34 V42 M47,55 H69 M47,62 H65 M47,69 H67"
-        android:strokeColor="#FFFFFF"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:strokeWidth="3" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M38,55 a2.5,2.5 0 1 0 5,0 a2.5,2.5 0 1 0 -5,0 Z M38,62 a2.5,2.5 0 1 0 5,0 a2.5,2.5 0 1 0 -5,0 Z M38,69 a2.5,2.5 0 1 0 5,0 a2.5,2.5 0 1 0 -5,0 Z" />
+    <!-- Enlarged x1.15 to fill the r=33 safe zone (farthest point 28.3 -> 32.5). -->
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="1.15"
+        android:scaleY="1.15">
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M38,38 H70 A4,4 0 0 1 74,42 V70 A4,4 0 0 1 70,74 H38 A4,4 0 0 1 34,70 V42 A4,4 0 0 1 38,38 Z M34,48 H74 M44,34 V42 M64,34 V42 M47,55 H69 M47,62 H65 M47,69 H67"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="3" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M38,55 a2.5,2.5 0 1 0 5,0 a2.5,2.5 0 1 0 -5,0 Z M38,62 a2.5,2.5 0 1 0 5,0 a2.5,2.5 0 1 0 -5,0 Z M38,69 a2.5,2.5 0 1 0 5,0 a2.5,2.5 0 1 0 -5,0 Z" />
+    </group>
 </vector>
