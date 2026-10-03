@@ -16,8 +16,12 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.InputFilter
 import android.text.InputType
+import android.text.SpannableStringBuilder
+import android.text.Spanned
 import android.text.TextUtils
 import android.text.TextWatcher
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -189,10 +193,10 @@ class SettingsActivity : Activity() {
                     fullWidth(top = 4),
                 )
                 addView(
-                    switchRow(R.string.restore_colors, CalendarColors.restoreEnabled(context)) {
+                    switchRow(R.string.restore_colors, CalendarColors.restoreEnabled(context), R.string.help_restore_colors) {
                         CalendarColors.setRestoreEnabled(this@SettingsActivity, it)
                         if (it) refreshWidgets()
-                    }.also { it.tooltipText = getString(R.string.help_restore_colors) },
+                    },
                     fullWidth(top = 4),
                 )
             },
@@ -1094,13 +1098,30 @@ class SettingsActivity : Activity() {
         return box
     }
 
+    /** Switch with an optional second line (smaller, secondary colour) that explains it. */
     private fun switchRow(
         label: Int,
         checked: Boolean,
+        subtitle: Int? = null,
         onChange: (Boolean) -> Unit,
     ): CompoundButton =
         Switch(this).apply {
-            text = getString(label)
+            text =
+                if (subtitle == null) {
+                    getString(label)
+                } else {
+                    SpannableStringBuilder(getString(label)).append('\n').also { sb ->
+                        val start = sb.length
+                        sb.append(getString(subtitle))
+                        sb.setSpan(RelativeSizeSpan(SUBTITLE_SCALE), start, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        sb.setSpan(
+                            ForegroundColorSpan(getColor(R.color.md_on_surface_variant)),
+                            start,
+                            sb.length,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+                        )
+                    }
+                }
             isChecked = checked
             minHeight = px(48)
             setOnCheckedChangeListener { _, isChecked -> onChange(isChecked) }
@@ -1161,6 +1182,7 @@ class SettingsActivity : Activity() {
         private const val RGB_MASK = 0xFFFFFF
         private const val HEX_DIGITS = 6
         private const val HEX_EMS = 5
+        private const val SUBTITLE_SCALE = 0.8f
         private const val HSV_PARTS = 3
         private const val HUE_MAX = 360f
         private const val HUE_STOPS = 7
