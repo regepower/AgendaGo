@@ -15,19 +15,24 @@ object ConfigIO {
     const val MIME = "application/json"
     private const val FORMAT = 1
 
-    fun toJson(sp: SharedPreferences, app: String, keep: (String) -> Boolean = { false }): String {
+    fun toJson(
+        sp: SharedPreferences,
+        app: String,
+        keep: (String) -> Boolean = { false },
+    ): String {
         val values = JSONObject()
         for ((key, value) in sp.all) {
             if (keep(key)) continue
-            val entry = when (value) {
-                is Boolean -> typed("b", value)
-                is Int -> typed("i", value)
-                is Long -> typed("l", value)
-                is Float -> typed("f", value.toDouble())
-                is String -> typed("s", value)
-                is Set<*> -> typed("ss", JSONArray(value.map { it.toString() }))
-                else -> null
-            } ?: continue
+            val entry =
+                when (value) {
+                    is Boolean -> typed("b", value)
+                    is Int -> typed("i", value)
+                    is Long -> typed("l", value)
+                    is Float -> typed("f", value.toDouble())
+                    is String -> typed("s", value)
+                    is Set<*> -> typed("ss", JSONArray(value.map { it.toString() }))
+                    else -> null
+                } ?: continue
             values.put(key, entry)
         }
         return JSONObject()
@@ -38,14 +43,22 @@ object ConfigIO {
     }
 
     /** Replaces all values with the file's content. False if [json] is not a valid config of [app]. */
-    fun fromJson(sp: SharedPreferences, json: String, app: String, keep: (String) -> Boolean = { false }): Boolean {
-        val parsed = try {
-            parse(json, app)
-        } catch (_: JSONException) {
-            null
-        } ?: return false
+    fun fromJson(
+        sp: SharedPreferences,
+        json: String,
+        app: String,
+        keep: (String) -> Boolean = { false },
+    ): Boolean {
+        val parsed =
+            try {
+                parse(json, app)
+            } catch (_: JSONException) {
+                null
+            } ?: return false
         val editor = sp.edit()
-        sp.all.keys.filterNot(keep).forEach { editor.remove(it) }
+        sp.all.keys
+            .filterNot(keep)
+            .forEach { editor.remove(it) }
         parsed.filterKeys { !keep(it) }.forEach { (key, value) ->
             @Suppress("UNCHECKED_CAST")
             when (value) {
@@ -60,25 +73,32 @@ object ConfigIO {
         return editor.commit()
     }
 
-    private fun typed(type: String, value: Any) = JSONObject().put("t", type).put("v", value)
+    private fun typed(
+        type: String,
+        value: Any,
+    ) = JSONObject().put("t", type).put("v", value)
 
     /** Validates everything before anything is written. */
-    private fun parse(json: String, app: String): Map<String, Any>? {
+    private fun parse(
+        json: String,
+        app: String,
+    ): Map<String, Any>? {
         val root = JSONObject(json)
         if (root.optString("app") != app) return null
         val values = root.getJSONObject("values")
         val out = LinkedHashMap<String, Any>()
         for (key in values.keys()) {
             val e = values.getJSONObject(key)
-            out[key] = when (e.getString("t")) {
-                "b" -> e.getBoolean("v")
-                "i" -> e.getInt("v")
-                "l" -> e.getLong("v")
-                "f" -> e.getDouble("v").toFloat()
-                "s" -> e.getString("v")
-                "ss" -> e.getJSONArray("v").let { a -> (0 until a.length()).map { a.getString(it) }.toSet() }
-                else -> return null
-            }
+            out[key] =
+                when (e.getString("t")) {
+                    "b" -> e.getBoolean("v")
+                    "i" -> e.getInt("v")
+                    "l" -> e.getLong("v")
+                    "f" -> e.getDouble("v").toFloat()
+                    "s" -> e.getString("v")
+                    "ss" -> e.getJSONArray("v").let { a -> (0 until a.length()).map { a.getString(it) }.toSet() }
+                    else -> return null
+                }
         }
         return out
     }

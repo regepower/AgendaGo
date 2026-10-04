@@ -27,25 +27,27 @@ object AppShell {
     const val REQ_SAVE = 7301
     const val REQ_LOAD = 7302
 
-    fun header(a: Activity): LinearLayout = LinearLayout(a).apply {
-        gravity = Gravity.CENTER_VERTICAL
-        addView(
-            TextView(a).apply {
-                text = a.getString(R.string.app_name)
-                textSize = 24f
-                setTypeface(typeface, Typeface.BOLD)
-                setTextColor(a.getColor(R.color.md_on_container))
-            },
-            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-        )
-        val size = (44 * a.resources.displayMetrics.density).toInt()
-        addView(icon(a, R.drawable.ic_save, R.string.cfg_save) { startSave(a) }, LinearLayout.LayoutParams(size, size))
-        addView(icon(a, R.drawable.ic_load, R.string.cfg_load) { startLoad(a) }, LinearLayout.LayoutParams(size, size))
-        addView(icon(a, R.drawable.ic_help, R.string.help) { showHelp(a) }, LinearLayout.LayoutParams(size, size))
-    }
+    fun header(a: Activity): LinearLayout =
+        LinearLayout(a).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            addView(
+                TextView(a).apply {
+                    text = a.getString(R.string.app_name)
+                    textSize = 24f
+                    setTypeface(typeface, Typeface.BOLD)
+                    setTextColor(a.getColor(R.color.md_on_container))
+                },
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
+            )
+            val size = (44 * a.resources.displayMetrics.density).toInt()
+            addView(icon(a, R.drawable.ic_save, R.string.cfg_save) { startSave(a) }, LinearLayout.LayoutParams(size, size))
+            addView(icon(a, R.drawable.ic_load, R.string.cfg_load) { startLoad(a) }, LinearLayout.LayoutParams(size, size))
+            addView(icon(a, R.drawable.ic_help, R.string.help) { showHelp(a) }, LinearLayout.LayoutParams(size, size))
+        }
 
     fun showHelp(a: Activity) {
-        AlertDialog.Builder(a)
+        AlertDialog
+            .Builder(a)
             .setTitle(R.string.help)
             .setMessage(a.getText(R.string.help_text))
             .setPositiveButton(R.string.help_ok, null)
@@ -63,7 +65,7 @@ object AppShell {
         data: Intent?,
         sp: SharedPreferences,
         keep: (String) -> Boolean = { false },
-        onLoaded: () -> Unit = { a.recreate() }
+        onLoaded: () -> Unit = { a.recreate() },
     ): Boolean {
         if (requestCode != REQ_SAVE && requestCode != REQ_LOAD) return false
         val uri = data?.data
@@ -72,7 +74,12 @@ object AppShell {
         return true
     }
 
-    private fun icon(a: Activity, res: Int, desc: Int, onClick: () -> Unit) = ImageButton(a).apply {
+    private fun icon(
+        a: Activity,
+        res: Int,
+        desc: Int,
+        onClick: () -> Unit,
+    ) = ImageButton(a).apply {
         setImageResource(res)
         imageTintList = ColorStateList.valueOf(a.getColor(R.color.md_primary))
         val tv = TypedValue()
@@ -84,24 +91,31 @@ object AppShell {
     }
 
     private fun startSave(a: Activity) {
-        val i = Intent(Intent.ACTION_CREATE_DOCUMENT)
-            .addCategory(Intent.CATEGORY_OPENABLE)
-            .setType(ConfigIO.MIME)
-            .putExtra(Intent.EXTRA_TITLE, "${a.getString(R.string.app_name)}.json")
+        val i =
+            Intent(Intent.ACTION_CREATE_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType(ConfigIO.MIME)
+                .putExtra(Intent.EXTRA_TITLE, "${a.getString(R.string.app_name)}.json")
         @Suppress("DEPRECATION")
         a.startActivityForResult(i, REQ_SAVE)
     }
 
     private fun startLoad(a: Activity) {
-        val i = Intent(Intent.ACTION_OPEN_DOCUMENT)
-            .addCategory(Intent.CATEGORY_OPENABLE)
-            .setType("*/*")
-            .putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(ConfigIO.MIME, "text/plain", "application/octet-stream"))
+        val i =
+            Intent(Intent.ACTION_OPEN_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("*/*")
+                .putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(ConfigIO.MIME, "text/plain", "application/octet-stream"))
         @Suppress("DEPRECATION")
         a.startActivityForResult(i, REQ_LOAD)
     }
 
-    private fun save(a: Activity, uri: Uri, sp: SharedPreferences, keep: (String) -> Boolean) {
+    private fun save(
+        a: Activity,
+        uri: Uri,
+        sp: SharedPreferences,
+        keep: (String) -> Boolean,
+    ) {
         try {
             a.contentResolver.openOutputStream(uri, "wt")?.use {
                 it.write(ConfigIO.toJson(sp, a.getString(R.string.app_name), keep).toByteArray())
@@ -113,13 +127,20 @@ object AppShell {
         }
     }
 
-    private fun load(a: Activity, uri: Uri, sp: SharedPreferences, keep: (String) -> Boolean, onLoaded: () -> Unit) {
-        val json = try {
-            a.contentResolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) }
-        } catch (e: IOException) {
-            Log.w("AppShell", "load config", e)
-            null
-        }
+    private fun load(
+        a: Activity,
+        uri: Uri,
+        sp: SharedPreferences,
+        keep: (String) -> Boolean,
+        onLoaded: () -> Unit,
+    ) {
+        val json =
+            try {
+                a.contentResolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) }
+            } catch (e: IOException) {
+                Log.w("AppShell", "load config", e)
+                null
+            }
         if (json == null || !ConfigIO.fromJson(sp, json, a.getString(R.string.app_name), keep)) {
             toast(a, R.string.cfg_invalid)
             return
@@ -128,5 +149,8 @@ object AppShell {
         onLoaded()
     }
 
-    private fun toast(a: Activity, res: Int) = Toast.makeText(a, res, Toast.LENGTH_SHORT).show()
+    private fun toast(
+        a: Activity,
+        res: Int,
+    ) = Toast.makeText(a, res, Toast.LENGTH_SHORT).show()
 }

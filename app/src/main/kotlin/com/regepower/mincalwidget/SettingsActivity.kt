@@ -8,16 +8,28 @@ import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.text.Editable
+import android.text.InputFilter
+import android.text.InputType
+import android.text.SpannableStringBuilder
+import android.text.Spanned
 import android.text.TextUtils
+import android.text.TextWatcher
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.CompoundButton
+import android.widget.EditText
+import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioButton
@@ -28,17 +40,21 @@ import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import com.regepower.mincalwidget.data.Birthdays
+import com.regepower.mincalwidget.data.CalendarColors
 import com.regepower.mincalwidget.data.CalendarInfo
 import com.regepower.mincalwidget.data.DateLabels
 import com.regepower.mincalwidget.data.Event
 import com.regepower.mincalwidget.data.EventRepository
 import com.regepower.mincalwidget.data.FontStyle
+import com.regepower.mincalwidget.data.PaletteColor
 import com.regepower.mincalwidget.data.TaskList
 import com.regepower.mincalwidget.data.Tasks
 import com.regepower.mincalwidget.data.WidgetPrefs
 import com.regepower.mincalwidget.widget.CalendarWidgetProvider
 import com.regepower.mincalwidget.widget.WidgetRenderer
 import com.regepower.mincalwidget.widget.WidgetUpdater
+import java.util.Locale
+import kotlin.math.roundToInt
 
 /**
  * Widget settings. Opened by the launcher when a widget is placed or reconfigured (with a
@@ -92,19 +108,6 @@ class SettingsActivity : Activity() {
         refreshPermission()
     }
 
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?,
-    ) {
-        @Suppress("DEPRECATION")
-        super.onActivityResult(requestCode, resultCode, data)
-        AppShell.onResult(this, requestCode, resultCode, data, WidgetPrefs.store(this), WidgetPrefs::isDeviceKey) {
-            refreshWidgets()
-            show(widgetId)
-        }
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(STATE_WIDGET, widgetId ?: AppWidgetManager.INVALID_APPWIDGET_ID)
@@ -121,6 +124,7 @@ class SettingsActivity : Activity() {
             refreshPermission()
             refreshWidgets()
         }
+        if (requestCode == REQUEST_WRITE_CALENDAR && CalendarColors.canWrite(this)) openCalendarColors()
         if (requestCode == REQUEST_TASKS) {
             val granted = Tasks.permitted(this)
             prefs = prefs.copy(tasks = granted)
@@ -133,6 +137,19 @@ class SettingsActivity : Activity() {
             prefs = prefs.copy(birthdays = granted)
             birthdaySwitch.isChecked = granted
             loadData()
+        }
+    }
+
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?,
+    ) {
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
+        AppShell.onResult(this, requestCode, resultCode, data, WidgetPrefs.store(this), WidgetPrefs::isDeviceKey) {
+            refreshWidgets()
+            show(widgetId)
         }
     }
 
@@ -170,6 +187,18 @@ class SettingsActivity : Activity() {
                 addView(header(R.string.section_calendars))
                 calendarBtn = button(R.string.calendars_all) { pickCalendars() }
                 addView(calendarBtn, fullWidth(top = 4))
+                addView(
+                    button(R.string.btn_calendar_colors) { openCalendarColors() }
+                        .also { it.tooltipText = getString(R.string.help_calendar_colors) },
+                    fullWidth(top = 4),
+                )
+                addView(
+                    switchRow(R.string.restore_colors, CalendarColors.restoreEnabled(context), R.string.help_restore_colors) {
+                        CalendarColors.setRestoreEnabled(this@SettingsActivity, it)
+                        if (it) refreshWidgets()
+                    },
+                    fullWidth(top = 4),
+                )
             },
             fullWidth(top = 8),
         )
@@ -341,6 +370,310 @@ class SettingsActivity : Activity() {
         }.start()
     }
 
+    // ---- calendar colours ---------------------------------------------------------------
+
+    /** List of all calendars; tapping one opens its colour choice. */
+    private fun openCalendarColors() {
+        if (!CalendarColors.canWrite(this)) {
+            requestPermissions(arrayOf(Manifest.permission.WRITE_CALENDAR), REQUEST_WRITE_CALENDAR)
+            return
+        }
+        if (calendars.isEmpty()) {
+            message(R.string.btn_calendar_colors, R.string.no_calendars)
+            return
+        }
+        val list =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(px(16), px(4), px(16), px(8))
+            }
+        var account: String? = null
+        for (calendar in calendars) {
+            val accountLabel = prettyAccount(calendar.account)
+            if (accountLabel != account) {
+                account = accountLabel
+                list.addView(accountHeader(accountLabel), fullWidth(top = if (list.childCount == 0) 4 else 12))
+            }
+            val dot =
+                ImageView(this).apply {
+                    setImageResource(R.drawable.dot)
+                    setColorFilter(calendar.color or OPAQUE)
+                    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                }
+            val row =
+                LinearLayout(this).apply {
+                    gravity = Gravity.CENTER_VERTICAL
+                    minimumHeight = px(48)
+                    background = rippleBackground()
+                    isClickable = true
+                    contentDescription = prettyName(calendar.name)
+                    addView(dot, LinearLayout.LayoutParams(px(20), px(20)).apply { marginStart = px(4) })
+                    addView(
+                        TextView(context).apply {
+                            text = prettyName(calendar.name)
+                            textSize = 16f
+                            maxLines = 1
+                            ellipsize = TextUtils.TruncateAt.END
+                        },
+                        LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = px(16) },
+                    )
+                    setOnClickListener { pickColor(calendar) { color -> dot.setColorFilter(color or OPAQUE) } }
+                }
+            list.addView(row, fullWidth())
+        }
+        AlertDialog
+            .Builder(this)
+            .setTitle(R.string.btn_calendar_colors)
+            .setView(cappedScroller(list))
+            .setPositiveButton(R.string.btn_done) { _, _ -> loadData() }
+            .setOnDismissListener { loadData() }
+            .show()
+    }
+
+    /** Palette of the calendar's account (Google) or default palette plus free colour (others). */
+    private fun pickColor(
+        calendar: CalendarInfo,
+        onChanged: (Int) -> Unit,
+    ) {
+        Thread {
+            val own = CalendarColors.palette(this, calendar)
+            runOnUiThread {
+                if (isFinishing) return@runOnUiThread
+                val free = CalendarColors.allowsFreeColor(calendar)
+                val palette =
+                    when {
+                        own.isNotEmpty() -> own
+                        free -> CalendarColors.DEFAULT_PALETTE.map { PaletteColor(null, it) }
+                        else -> emptyList()
+                    }
+                showColorDialog(calendar, palette, free, onChanged)
+            }
+        }.start()
+    }
+
+    private fun showColorDialog(
+        calendar: CalendarInfo,
+        palette: List<PaletteColor>,
+        free: Boolean,
+        onChanged: (Int) -> Unit,
+    ) {
+        var dialog: AlertDialog? = null
+        val content =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(px(20), px(8), px(20), px(4))
+            }
+        if (calendar.accountType == CalendarColors.GOOGLE) {
+            content.addView(
+                TextView(this).apply {
+                    text = getString(R.string.colors_google_hint)
+                    textSize = 13f
+                },
+                fullWidth(),
+            )
+        }
+
+        fun choose(choice: PaletteColor) {
+            val app = applicationContext
+            Thread {
+                val ok = CalendarColors.apply(app, calendar, choice)
+                runOnUiThread {
+                    if (ok) {
+                        onChanged(choice.color)
+                        refreshWidgets()
+                    } else {
+                        Toast.makeText(this, R.string.color_failed, Toast.LENGTH_LONG).show()
+                    }
+                    dialog?.dismiss()
+                }
+            }.start()
+        }
+
+        val columns = SWATCH_COLUMNS
+        val grid = GridLayout(this).apply { columnCount = columns }
+        val size = px(SWATCH_DP)
+        val current = calendar.color or OPAQUE
+        for (choice in palette) {
+            val selected = (choice.color or OPAQUE) == current
+            grid.addView(
+                ImageView(this).apply {
+                    setImageResource(R.drawable.dot)
+                    setColorFilter(choice.color or OPAQUE)
+                    contentDescription = hex(choice.color)
+                    background = if (selected) getDrawable(R.drawable.swatch_ring) else rippleBackground()
+                    setPadding(px(4), px(4), px(4), px(4))
+                    setOnClickListener { choose(choice) }
+                },
+                GridLayout.LayoutParams().apply {
+                    width = size
+                    height = size
+                },
+            )
+        }
+        content.addView(
+            grid,
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                topMargin =
+                    px(8)
+            },
+        )
+
+        var freeField: EditText? = null
+        if (free) {
+            val preview =
+                ImageView(this).apply {
+                    setImageResource(R.drawable.dot)
+                    setColorFilter(current)
+                    // Same size and inset as the palette swatches, so the row lines up with the grid.
+                    setPadding(px(4), px(4), px(4), px(4))
+                }
+            val hsv = FloatArray(HSV_PARTS).also { Color.colorToHSV(current, it) }
+            val bars = mutableListOf<SeekBar>()
+            var syncing = false
+
+            /** Gradients show what each slider does with the other two values fixed. */
+            fun paintBars() {
+                val hues = IntArray(HUE_STOPS) { Color.HSVToColor(floatArrayOf(it * HUE_MAX / (HUE_STOPS - 1), 1f, 1f)) }
+                val sat = intArrayOf(Color.HSVToColor(floatArrayOf(hsv[0], 0f, hsv[2])), Color.HSVToColor(floatArrayOf(hsv[0], 1f, hsv[2])))
+                val value = intArrayOf(Color.BLACK, Color.HSVToColor(floatArrayOf(hsv[0], hsv[1], 1f)))
+                listOf(hues, sat, value).forEachIndexed { i, colors ->
+                    bars[i].progressDrawable =
+                        GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, colors).apply { cornerRadius = px(4).toFloat() }
+                }
+            }
+            val field =
+                EditText(this).apply {
+                    hint = getString(R.string.color_hex_hint)
+                    setText(hex(current))
+                    minEms = HEX_EMS
+                    inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+                    filters = arrayOf(InputFilter.LengthFilter(HEX_LENGTH))
+                    addTextChangedListener(
+                        object : TextWatcher {
+                            override fun beforeTextChanged(
+                                s: CharSequence?,
+                                start: Int,
+                                count: Int,
+                                after: Int,
+                            ) = Unit
+
+                            override fun onTextChanged(
+                                s: CharSequence?,
+                                start: Int,
+                                before: Int,
+                                count: Int,
+                            ) = Unit
+
+                            override fun afterTextChanged(s: Editable?) {
+                                if (syncing) return
+                                val color = parseHex(s?.toString()) ?: return
+                                preview.setColorFilter(color)
+                                Color.colorToHSV(color, hsv)
+                                bars.forEachIndexed { i, bar -> bar.progress = (hsv[i] * HSV_SCALE[i]).roundToInt() }
+                                paintBars()
+                            }
+                        },
+                    )
+                }
+            val row = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+            row.addView(preview, LinearLayout.LayoutParams(size, size))
+            row.addView(
+                field,
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                    marginStart = px(8)
+                },
+            )
+            row.addView(
+                TextView(this).apply { text = getString(R.string.color_free) },
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = px(8) },
+            )
+            content.addView(row, fullWidth(top = 12))
+
+            for ((i, label) in listOf(R.string.color_hue, R.string.color_saturation, R.string.color_brightness).withIndex()) {
+                val bar =
+                    SeekBar(this).apply {
+                        max = HSV_SCALE[i].toInt()
+                        progress = (hsv[i] * HSV_SCALE[i]).roundToInt()
+                        minHeight = px(BAR_DP)
+                        maxHeight = px(BAR_DP)
+                        contentDescription = getString(label)
+                        tooltipText = getString(label)
+                        setOnSeekBarChangeListener(
+                            object : SeekBar.OnSeekBarChangeListener {
+                                override fun onProgressChanged(
+                                    seekBar: SeekBar,
+                                    progress: Int,
+                                    fromUser: Boolean,
+                                ) {
+                                    if (!fromUser) return
+                                    hsv[i] = progress / HSV_SCALE[i]
+                                    val color = Color.HSVToColor(hsv)
+                                    preview.setColorFilter(color)
+                                    syncing = true
+                                    field.setText(hex(color))
+                                    field.setSelection(field.length())
+                                    syncing = false
+                                    paintBars()
+                                }
+
+                                override fun onStartTrackingTouch(seekBar: SeekBar) = Unit
+
+                                override fun onStopTrackingTouch(seekBar: SeekBar) = Unit
+                            },
+                        )
+                    }
+                bars += bar
+                content.addView(
+                    TextView(this).apply {
+                        text = getString(label)
+                        textSize = 12f
+                        setTextColor(getColor(R.color.md_on_surface_variant))
+                    },
+                    fullWidth(top = 8),
+                )
+                content.addView(bar, fullWidth(top = 2))
+            }
+            paintBars()
+            freeField = field
+        }
+
+        if (palette.isEmpty() && !free) {
+            content.addView(TextView(this).apply { text = getString(R.string.colors_none) }, fullWidth(top = 8))
+        }
+
+        val builder =
+            AlertDialog
+                .Builder(this)
+                .setTitle(prettyName(calendar.name))
+                .setView(cappedScroller(content))
+        val field = freeField
+        if (field == null) {
+            builder.setNegativeButton(android.R.string.cancel, null)
+        } else {
+            // Dialog button order is [negative][positive]: "Set" sits left of "Cancel".
+            builder.setNegativeButton(R.string.btn_apply_color, null).setPositiveButton(android.R.string.cancel, null)
+        }
+        val shown = builder.show()
+        dialog = shown
+        // Own listener, so an invalid hex value keeps the dialog open.
+        shown.getButton(AlertDialog.BUTTON_NEGATIVE).takeIf { field != null }?.setOnClickListener {
+            val color = parseHex(field?.text?.toString())
+            if (color == null) {
+                field?.error = getString(R.string.color_hex_invalid)
+            } else {
+                choose(PaletteColor(null, color))
+            }
+        }
+    }
+
+    private fun hex(color: Int) = String.format(Locale.ROOT, "#%06X", color and RGB_MASK)
+
+    private fun parseHex(raw: String?): Int? {
+        val hex = raw?.trim()?.removePrefix("#") ?: return null
+        if (hex.length != HEX_DIGITS || hex.any { it.digitToIntOrNull(HEX_RADIX) == null }) return null
+        return hex.toLong(HEX_RADIX).toInt() or OPAQUE
+    }
+
     // ---- tasks (Google Tasks via Tasks.org) ----------------------------------------------
 
     private fun tasksCard() =
@@ -500,20 +833,7 @@ class SettingsActivity : Activity() {
                 list.addView(row.first, fullWidth())
                 row.second
             }
-        val maxHeight = (resources.displayMetrics.heightPixels * DIALOG_HEIGHT).toInt()
-        val scroller =
-            object : ScrollView(this) {
-                override fun onMeasure(
-                    widthMeasureSpec: Int,
-                    heightMeasureSpec: Int,
-                ) {
-                    super.onMeasure(widthMeasureSpec, View.MeasureSpec.makeMeasureSpec(maxHeight, View.MeasureSpec.AT_MOST))
-                }
-            }.apply {
-                isVerticalScrollBarEnabled = true
-                isScrollbarFadingEnabled = false
-                addView(list)
-            }
+        val scroller = cappedScroller(list)
         AlertDialog
             .Builder(this)
             .setTitle(title)
@@ -524,6 +844,23 @@ class SettingsActivity : Activity() {
                 onDone(if (ids.isEmpty() || ids.size == items.size) emptySet() else ids)
             }.setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    /** ScrollView capped to a share of the screen height, scrollbar always visible. */
+    private fun cappedScroller(content: View): ScrollView {
+        val maxHeight = (resources.displayMetrics.heightPixels * DIALOG_HEIGHT).toInt()
+        return object : ScrollView(this) {
+            override fun onMeasure(
+                widthMeasureSpec: Int,
+                heightMeasureSpec: Int,
+            ) {
+                super.onMeasure(widthMeasureSpec, View.MeasureSpec.makeMeasureSpec(maxHeight, View.MeasureSpec.AT_MOST))
+            }
+        }.apply {
+            isVerticalScrollBarEnabled = true
+            isScrollbarFadingEnabled = false
+            addView(content)
+        }
     }
 
     private fun accountHeader(text: String) =
@@ -761,13 +1098,30 @@ class SettingsActivity : Activity() {
         return box
     }
 
+    /** Switch with an optional second line (smaller, secondary colour) that explains it. */
     private fun switchRow(
         label: Int,
         checked: Boolean,
+        subtitle: Int? = null,
         onChange: (Boolean) -> Unit,
     ): CompoundButton =
         Switch(this).apply {
-            text = getString(label)
+            text =
+                if (subtitle == null) {
+                    getString(label)
+                } else {
+                    SpannableStringBuilder(getString(label)).append('\n').also { sb ->
+                        val start = sb.length
+                        sb.append(getString(subtitle))
+                        sb.setSpan(RelativeSizeSpan(SUBTITLE_SCALE), start, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        sb.setSpan(
+                            ForegroundColorSpan(getColor(R.color.md_on_surface_variant)),
+                            start,
+                            sb.length,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+                        )
+                    }
+                }
             isChecked = checked
             minHeight = px(48)
             setOnCheckedChangeListener { _, isChecked -> onChange(isChecked) }
@@ -822,6 +1176,22 @@ class SettingsActivity : Activity() {
         private const val REQUEST_CALENDAR = 1
         private const val REQUEST_CONTACTS = 2
         private const val REQUEST_TASKS = 3
+        private const val REQUEST_WRITE_CALENDAR = 4
+        private const val SWATCH_COLUMNS = 6
+        private const val SWATCH_DP = 44
+        private const val RGB_MASK = 0xFFFFFF
+        private const val HEX_DIGITS = 6
+        private const val HEX_EMS = 5
+        private const val SUBTITLE_SCALE = 0.8f
+        private const val HSV_PARTS = 3
+        private const val HUE_MAX = 360f
+        private const val HUE_STOPS = 7
+        private const val BAR_DP = 8
+
+        /** Slider steps per HSV component: hue in degrees, saturation and brightness in percent. */
+        private val HSV_SCALE = floatArrayOf(HUE_MAX, 100f, 100f)
+        private const val HEX_LENGTH = 7
+        private const val HEX_RADIX = 16
         private const val DISABLED_ALPHA = 0.5f
         private const val STATE_WIDGET = "widget_id"
         private const val PREVIEW_ROWS = 4
