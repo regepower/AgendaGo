@@ -25,6 +25,8 @@
             android:tint="#43A047" />
 
         <TextView
+            android:fallbackLineSpacing="false"
+            android:includeFontPadding="false"
             android:layout_width="52dp"
             android:layout_height="wrap_content"
             android:maxLines="1"
@@ -32,6 +34,8 @@
             android:textColor="@color/w_text2"
             android:textSize="14sp" />
         <TextView
+            android:fallbackLineSpacing="false"
+            android:includeFontPadding="false"
             android:layout_width="44dp"
             android:layout_height="wrap_content"
             android:maxLines="1"
@@ -39,6 +43,8 @@
             android:textColor="@color/w_text2"
             android:textSize="14sp" />
         <TextView
+            android:fallbackLineSpacing="false"
+            android:includeFontPadding="false"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:maxLines="1"
@@ -63,6 +69,8 @@
             android:tint="#1E88E5" />
 
         <TextView
+            android:fallbackLineSpacing="false"
+            android:includeFontPadding="false"
             android:layout_width="52dp"
             android:layout_height="wrap_content"
             android:maxLines="1"
@@ -70,6 +78,8 @@
             android:textColor="@color/w_text2"
             android:textSize="14sp" />
         <TextView
+            android:fallbackLineSpacing="false"
+            android:includeFontPadding="false"
             android:layout_width="44dp"
             android:layout_height="wrap_content"
             android:maxLines="1"
@@ -77,6 +87,8 @@
             android:textColor="@color/w_text2"
             android:textSize="14sp" />
         <TextView
+            android:fallbackLineSpacing="false"
+            android:includeFontPadding="false"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:maxLines="1"
@@ -84,6 +96,8 @@
             android:textColor="@color/w_text"
             android:textSize="14sp" />
         <TextView
+            android:fallbackLineSpacing="false"
+            android:includeFontPadding="false"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
@@ -110,6 +124,8 @@
             android:tint="#E53935" />
 
         <TextView
+            android:fallbackLineSpacing="false"
+            android:includeFontPadding="false"
             android:layout_width="52dp"
             android:layout_height="wrap_content"
             android:maxLines="1"
@@ -117,12 +133,16 @@
             android:textColor="@color/w_text2"
             android:textSize="14sp" />
         <TextView
+            android:fallbackLineSpacing="false"
+            android:includeFontPadding="false"
             android:layout_width="44dp"
             android:layout_height="wrap_content"
             android:maxLines="1"
             android:textColor="@color/w_text2"
             android:textSize="14sp" />
         <TextView
+            android:fallbackLineSpacing="false"
+            android:includeFontPadding="false"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:maxLines="1"
