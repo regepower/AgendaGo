@@ -47,7 +47,7 @@ Use `Theme.DeviceDefault.DayNight` as parent and map your own `md_*` colors to `
 
 ## App shell (all our apps)
 
-Same top row everywhere: app name large + bold, then icons **save config**, **load config**, **help (?)**. Help is a dialog with a short guide; config is one JSON file via the Storage Access Framework (no permission), generic `ConfigIO.kt`. Long lists show only the active entry in a card (tap = picker dialog, + / − icons). Details, icon paths and the tested ConfigIO: `references/app-shell.md`.
+Same top row everywhere: app name large + bold, then icons **save config**, **load config**, **help (?)**. Help is a dialog with a short guide; config is one JSON file via the system file dialog (JSON filter, no permission, cloud OK); the last file is remembered and overwritten after asking (Überschreiben / Anderer Ort / Abbrechen), generic `ConfigIO.kt`. Long lists show only the active entry in a card (tap = picker dialog, + / − icons). Details, icon paths and the tested ConfigIO: `references/app-shell.md`.
 
 ## App icon
 

@@ -1,17 +1,17 @@
 # App shell shared by all our apps (header, help, config save/load)
 
-User decision (MinDNSChanger, Oct 2026): every app gets the same top row; rolled out to BootDelay, MinCalSync, MinCalWidget, MinDNSChanger.
+User decision (MinDNSChanger, Oct 2026): every app gets the same top row; rolled out to BootDelay, MinCalSync, ZenDay (formerly MinCalWidget), MinDNSChanger.
 
-**Drop-in:** copy `AppShell.kt` + `ConfigIO.kt` from `regepower/BootDelay` (change only the package line), the vectors `ic_save/ic_load/ic_help`, the strings `help, help_ok, help_text, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error` (EN + DE), then:
+**Drop-in:** copy `AppShell.kt` + `ConfigIO.kt` from `regepower/ZenDay` (reference version; change only the package line), the vectors `ic_save/ic_load/ic_help`, the strings `help, help_ok, help_text, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite ("%1$s überschreiben?"), cfg_overwrite_ok ("Überschreiben"), cfg_other_place ("Anderer Ort")` (EN + DE), then:
 ```kotlin
-root.addView(AppShell.header(this))            // first row of the screen
+root.addView(AppShell.header(this, prefs.sp, Prefs.DEVICE_KEYS::contains))   // first row; sp/keep needed for overwrite-without-picker
 override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
     @Suppress("DEPRECATION")
     super.onActivityResult(requestCode, resultCode, data)
     AppShell.onResult(this, requestCode, resultCode, data, prefs.sp, Prefs.DEVICE_KEYS::contains) { /* re-apply */ recreate() }
 }
 ```
-Keep predicates in use: BootDelay boot counter keys, MinCalSync source/target calendar IDs + last result, MinCalWidget `*.cals` / `*.tasklists`. Existing app code stays untouched apart from the header row.
+Keep predicates in use: BootDelay boot counter keys, MinCalSync source/target calendar IDs + last result, ZenDay `*.cals` / `*.tasklists`. Existing app code stays untouched apart from the header row.
 
 ## Header row
 - Left: app name, 24sp, bold, `md_on_container`, weight 1.
@@ -28,7 +28,14 @@ Keep predicates in use: BootDelay boot counter keys, MinCalSync source/target ca
 `AlertDialog` with `setMessage(getText(R.string.help_text))`; `help_text` uses `<b>` section titles and `\n` line breaks, EN + DE. Sections: what the app does, setup steps, each feature in 1–2 sentences, OEM caveats, save/load. Button `help_ok` ("Verstanden"). MinCalSync also opens help automatically on first start (nothing configured yet).
 
 ## Config save/load (no permission)
-- Storage Access Framework: save = `ACTION_CREATE_DOCUMENT` (`application/json`, `EXTRA_TITLE "<AppName>.json"`), load = `ACTION_OPEN_DOCUMENT` (`*/*` + `EXTRA_MIME_TYPES` json/text/octet-stream, because file managers often tag .json wrongly). Write with `openOutputStream(uri, "wt")` (truncate!).
+- User decision (ZenDay, Oct 2026), file dialog + remembered file:
+  - **Save, first time / "Other location":** `ACTION_CREATE_DOCUMENT`, type `application/json` (dialog lists only JSON), `EXTRA_TITLE "<AppName>.json"`.
+  - **Save again:** dialog "<name> überschreiben?" → **Überschreiben** (write the remembered uri) · **Anderer Ort** (picker) · **Abbrechen** (save nothing). No "(1)" copies.
+  - **Load:** `ACTION_OPEN_DOCUMENT`, type `application/json`; the loaded file becomes the remembered file (after a phone move, the next save overwrites exactly that file).
+  - Remember: `takePersistableUriPermission(READ|WRITE)` (catch `SecurityException`: some providers grant read only) + uri in a separate prefs file `appshell` (never exported). `EXTRA_INITIAL_URI` = remembered uri, so the picker opens in that folder. Before asking to overwrite, query `COLUMN_DISPLAY_NAME`; null/exception → file gone → picker.
+  - Write `openOutputStream(uri, "wt")` (truncate!); fall back to `"w"` on `IllegalArgumentException`/`FileNotFoundException` (some cloud providers, e.g. Drive, don't know `"wt"`; there `"w"` replaces the content).
+  - Works with local folders and cloud providers (Drive …) — the point is moving the config to a new phone.
+- Rejected (measured on HyperOS / documented): `ACTION_OPEN_DOCUMENT_TREE` + fixed name — Android 11+ refuses Download and storage roots ("Ordner kann nicht verwendet werden"), and that's where users save. `ACTION_CREATE_DOCUMENT` alone can never overwrite (system appends "(1)").
 - `ConfigIO.kt` is generic — copy unchanged: exports all entries of one SharedPreferences file with type tags (`b/i/l/f/s/ss`) plus `"app"` name and `"format": 1`; import validates the whole file first (wrong app, broken JSON or unknown type → false, nothing changed), then removes all non-kept keys + typed puts + `commit()`. `keep: (String) -> Boolean` marks device-specific keys (neither exported nor overwritten).
 - Expose the app's store (`Prefs.sp`). Do not export device-specific state (boot counters, calendar IDs that differ per phone) — keep those in a second prefs file or skip their keys.
 - After import: re-apply running services (e.g. restart the VPN), then `recreate()`.
