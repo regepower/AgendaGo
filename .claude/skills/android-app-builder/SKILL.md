@@ -39,7 +39,7 @@ Short version: a boot receiver may start a foreground service of type `specialUs
 
 ## DNS-only VPN (MinDNSChanger)
 
-`VpnService.Builder` with `addAddress` + `addDnsServer`, **no routes**, `allowFamily(AF_INET/AF_INET6)`, no packet loop: Android resolves names for the covered apps via those servers while traffic uses the normal network. FGS type `systemExempted` needs `FOREGROUND_SERVICE_SYSTEM_EXEMPTED` **and** `USE_EXACT_ALARM` (lint `ForegroundServicePermission`). Always-on via `<intent-filter android.net.VpnService>` + `SUPPORTS_ALWAYS_ON`; "Block connections without VPN" must stay off. Network rules through `registerDefaultNetworkCallback` (the app excludes itself from its VPN, so it sees the underlying network) and `NET_CAPABILITY_CAPTIVE_PORTAL` for login hotspots.
+`VpnService.Builder` with `addAddress` + `addDnsServer`, **no routes**, `allowFamily(AF_INET/AF_INET6)`, no packet loop: Android resolves names for the covered apps via those servers while traffic uses the normal network. FGS type `systemExempted` needs `FOREGROUND_SERVICE_SYSTEM_EXEMPTED` **and** `USE_EXACT_ALARM` (lint `ForegroundServicePermission`). Always-on via `<intent-filter android.net.VpnService>` + `SUPPORTS_ALWAYS_ON`; "Block connections without VPN" must stay off. **Always `setMetered(false)`**: for targetSdk 29+ a VPN is metered by default, so Play Store stops auto-updates on Wi-Fi; false = inherit the underlying network's metered state. Network rules through `registerDefaultNetworkCallback` (the app excludes itself from its VPN, so it sees the underlying network) and `NET_CAPABILITY_CAPTIVE_PORTAL` for login hotspots.
 
 ## UI / design (Material You without libraries)
 

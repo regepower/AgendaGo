@@ -22,6 +22,7 @@
 
 ## Selector screen pattern (pick N items from a long list)
 - Top: search field (filters name + package, case-insensitive). Below: two bordered lists — "Ausgewählt (N)" (ordered, user-sortable) and "Verfügbar" (alphabetical, filtered). Tapping moves an item between lists, so the list never jumps to the top, and no counter/icon strip is needed.
+- Optional switch "show system apps": load `getInstalledApplications(0)`, mark launcher apps via `queryIntentActivities(MAIN/LAUNCHER)`; without the switch only launcher apps are offered, selected system apps are always listed (needs `QUERY_ALL_PACKAGES`).
 - Icons: load `ResolveInfo.loadIcon` in a background `Thread`, post the result to the UI thread.
 - Persist after every change and in `onPause`.
 - Drag sorting: RecyclerView + `ItemTouchHelper` (long-press drag) works but costs ~110 KB of the APK (measured; `StaggeredGridLayoutManager` etc. are kept by consumer rules and can't be shrunk). Zero-dependency alternative (not yet built/tested here): `ListView` + framework `View.startDragAndDrop` on long click, `OnDragListener` on the list with `pointToPosition` and edge auto-scroll — ~21 KB total APK instead of ~125 KB. Offer it when size matters and tell the user the drag UX needs a device test.
