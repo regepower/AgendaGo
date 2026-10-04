@@ -168,7 +168,7 @@ class SettingsActivity : Activity() {
                 orientation = LinearLayout.VERTICAL
                 setPadding(px(16), px(12), px(16), px(16))
             }
-        root.addView(AppShell.header(this))
+        root.addView(AppShell.header(this, WidgetPrefs.store(this), WidgetPrefs::isDeviceKey))
 
         permissionCard =
             card().apply {
