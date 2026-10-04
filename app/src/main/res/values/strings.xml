@@ -90,7 +90,7 @@
     <string name="cfg_loaded">Configuration loaded</string>
     <string name="cfg_invalid">Not a valid ZenDay configuration</string>
     <string name="cfg_error">File could not be written</string>
-    <string name="help_text"><b>What does the app do?</b>\nA home-screen widget with your next appointments, optionally with contact birthdays and open tasks.\n\n<b>Setup</b>\n1. Allow calendar access.\n2. Choose the calendars to show.\n3. \"Add widget to home screen\" or place it via the launcher widget list.\n\n<b>Settings</b>\nNumber of events and days, location, font, size and colours apply to the widget being edited; the preview shows the result. Tapping an event opens it in the calendar.\n\n<b>Tasks</b>\nOpen tasks are read from the free app Tasks.org, which syncs Google Tasks.\n\n<b>Calendar colors</b>\nGoogle calendars use the Google palette and send the color to Google. Exchange and local calendars keep it on this device only; \"Keep own colors\" puts it back after a sync resets it.\n\n<b>Save / load</b>\nThe icons at the top store the display settings in a file and restore them. Calendars and task lists are chosen again on each phone.</string>
+    <string name="help_text"><b>What does the app do?</b>\nA home-screen widget with your next appointments, optionally with contact birthdays and open tasks.\n\n<b>Setup</b>\n1. Allow calendar access.\n2. Choose the calendars to show.\n3. \"Add widget to home screen\" or place it via the launcher widget list.\n\n<b>Settings</b>\nNumber of events and days, location, font, size and colours apply to the widget being edited; the preview shows the result. Tapping an event opens it in the calendar.\n\n<b>Tasks</b>\nOpen tasks are read from the free app Tasks.org, which syncs Google Tasks.\n\n<b>Calendar colors</b>\nGoogle calendars use the Google palette and send the color to Google. Exchange and local calendars keep it on this device only; \"Keep own colors\" puts it back after a sync resets it.\n\n<b>Save / load</b>\nThe icons at the top save the display settings as ZenDay.json in a folder of your choice and load them from there. An existing file is overwritten after asking. Calendars and task lists are chosen again on each phone.</string>
     <string name="btn_calendar_colors">Change calendar colors</string>
     <string name="help_calendar_colors">Changes the color for all calendar apps. Google calendars use the Google palette and sync the color to Google; other calendars keep it on this device only.</string>
     <string name="restore_colors">Keep own colors</string>
@@ -106,4 +106,7 @@
     <string name="color_hue">Hue</string>
     <string name="color_saturation">Saturation</string>
     <string name="color_brightness">Brightness</string>
+    <string name="cfg_overwrite">%1$s already exists in this folder. Overwrite it?</string>
+    <string name="cfg_overwrite_ok">Overwrite</string>
+    <string name="cfg_not_found">%1$s not found in this folder</string>
 </resources>
