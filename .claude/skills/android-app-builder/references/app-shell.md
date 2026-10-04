@@ -1,6 +1,6 @@
 # App shell shared by all our apps (header, help, config save/load)
 
-User decision (MinDNSChanger, Oct 2026): every app gets the same top row; rolled out to BootDelay, MinCalSync, ZenDay (formerly MinCalWidget), MinDNSChanger.
+User decision (MinDNSChanger, Oct 2026): every app gets the same top row; rolled out to BootDelay, MinCalSync, ZenDay (formerly MinCalWidget), SwitchDNS (formerly MinDNSChanger).
 
 **Drop-in:** copy `AppShell.kt` + `ConfigIO.kt` from `regepower/ZenDay` (reference version; change only the package line), the vectors `ic_save/ic_load/ic_help`, the strings `help, help_ok, help_text, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite ("%1$s überschreiben?"), cfg_overwrite_ok ("Überschreiben"), cfg_other_place ("Anderer Ort")` (EN + DE), then:
 ```kotlin
@@ -11,6 +11,8 @@ override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) 
     AppShell.onResult(this, requestCode, resultCode, data, prefs.sp, Prefs.DEVICE_KEYS::contains) { /* re-apply */ recreate() }
 }
 ```
+Renamed apps: `AppShell.legacyNames = listOf("OldName")` (SwitchDNS has it; add the 3-line `legacyNames` extension when copying from ZenDay) so config files saved under the old app name still load.
+
 Keep predicates in use: BootDelay boot counter keys, MinCalSync source/target calendar IDs + last result, ZenDay `*.cals` / `*.tasklists`. Existing app code stays untouched apart from the header row.
 
 ## Header row
