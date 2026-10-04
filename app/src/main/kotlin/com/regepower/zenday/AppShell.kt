@@ -2,12 +2,16 @@ package com.regepower.zenday
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Typeface
 import android.net.Uri
+import android.os.Build
 import android.provider.DocumentsContract
+import android.text.TextUtils
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
@@ -21,7 +25,7 @@ import java.io.IOException
 /**
  * Shared top row of all our apps: large bold app name, then save config, load config and help.
  * Drop-in: copy with ConfigIO.kt, the icons ic_save/ic_load/ic_help and the strings help, help_ok,
- * help_text, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite,
+ * help_text, donate, donate_text, donate_url, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite,
  * cfg_overwrite_ok, cfg_other_place; forward onActivityResult to [onResult].
  * Config file: picked with the system file dialog (JSON filter); the last file is remembered and
  * overwritten after asking, so no "(1)" copies; works with cloud providers too.
@@ -55,13 +59,41 @@ object AppShell {
             addView(icon(a, R.drawable.ic_help, R.string.help) { showHelp(a) }, LinearLayout.LayoutParams(size, size))
         }
 
+    /** Help text, then app name + version and the donation line; neutral button opens Liberapay. */
     fun showHelp(a: Activity) {
+        val about = "\n\n${a.getString(R.string.app_name)} ${version(a)}\n${a.getString(R.string.donate_text)}"
         AlertDialog
             .Builder(a)
             .setTitle(R.string.help)
-            .setMessage(a.getText(R.string.help_text))
+            .setMessage(TextUtils.concat(a.getText(R.string.help_text), about))
             .setPositiveButton(R.string.help_ok, null)
+            .setNeutralButton(R.string.donate) { _, _ -> openDonate(a) }
             .show()
+    }
+
+    /** versionName from the package (no BuildConfig needed). */
+    private fun version(a: Activity): String =
+        try {
+            val pm = a.packageManager
+            val info =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    pm.getPackageInfo(a.packageName, PackageManager.PackageInfoFlags.of(0))
+                } else {
+                    @Suppress("DEPRECATION")
+                    pm.getPackageInfo(a.packageName, 0)
+                }
+            info.versionName.orEmpty()
+        } catch (e: PackageManager.NameNotFoundException) {
+            ""
+        }
+
+    private fun openDonate(a: Activity) {
+        try {
+            a.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(a.getString(R.string.donate_url))))
+        } catch (e: ActivityNotFoundException) {
+            Log.w("AppShell", "donate", e)
+            Toast.makeText(a, R.string.donate_url, Toast.LENGTH_LONG).show()
+        }
     }
 
     /**
