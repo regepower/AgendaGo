@@ -39,3 +39,7 @@ Local build: `gradle assembleRelease` (Gradle 8.11.1, JDK 17, Android SDK 36).
 
 - `READ_CALENDAR` – read events
 - `RECEIVE_BOOT_COMPLETED` – re-draw the widget after a reboot
+
+## Support
+
+This app weighs less than a photo. Support its development on [Liberapay](https://liberapay.com/regepower/donate).
