@@ -1,10 +1,10 @@
-package com.regepower.mincalwidget.data
+package com.regepower.zenday.data
 
 import android.content.ContentUris
 import android.content.Context
 import android.provider.CalendarContract.Calendars
 import android.provider.CalendarContract.Instances
-import com.regepower.mincalwidget.R
+import com.regepower.zenday.R
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId

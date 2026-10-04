@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "MinCalWidget"
+rootProject.name = "ZenDay"
 include(":app")

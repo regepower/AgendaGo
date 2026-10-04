@@ -1,4 +1,4 @@
-package com.regepower.mincalwidget
+package com.regepower.zenday
 
 import android.Manifest
 import android.app.Activity
@@ -39,20 +39,20 @@ import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
-import com.regepower.mincalwidget.data.Birthdays
-import com.regepower.mincalwidget.data.CalendarColors
-import com.regepower.mincalwidget.data.CalendarInfo
-import com.regepower.mincalwidget.data.DateLabels
-import com.regepower.mincalwidget.data.Event
-import com.regepower.mincalwidget.data.EventRepository
-import com.regepower.mincalwidget.data.FontStyle
-import com.regepower.mincalwidget.data.PaletteColor
-import com.regepower.mincalwidget.data.TaskList
-import com.regepower.mincalwidget.data.Tasks
-import com.regepower.mincalwidget.data.WidgetPrefs
-import com.regepower.mincalwidget.widget.CalendarWidgetProvider
-import com.regepower.mincalwidget.widget.WidgetRenderer
-import com.regepower.mincalwidget.widget.WidgetUpdater
+import com.regepower.zenday.data.Birthdays
+import com.regepower.zenday.data.CalendarColors
+import com.regepower.zenday.data.CalendarInfo
+import com.regepower.zenday.data.DateLabels
+import com.regepower.zenday.data.Event
+import com.regepower.zenday.data.EventRepository
+import com.regepower.zenday.data.FontStyle
+import com.regepower.zenday.data.PaletteColor
+import com.regepower.zenday.data.TaskList
+import com.regepower.zenday.data.Tasks
+import com.regepower.zenday.data.WidgetPrefs
+import com.regepower.zenday.widget.CalendarWidgetProvider
+import com.regepower.zenday.widget.WidgetRenderer
+import com.regepower.zenday.widget.WidgetUpdater
 import java.util.Locale
 import kotlin.math.roundToInt
 

@@ -1,8 +1,8 @@
-package com.regepower.mincalwidget.data
+package com.regepower.zenday.data
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.regepower.mincalwidget.R
+import com.regepower.zenday.R
 
 /** System font families offered for the widget; each has its own row layout. */
 enum class FontStyle(

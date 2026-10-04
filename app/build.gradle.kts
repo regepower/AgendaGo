@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.regepower.mincalwidget"
+    namespace = "com.regepower.zenday"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.regepower.mincalwidget"
+        applicationId = "com.regepower.zenday"
         // 31: RemoteViews.setViewLayoutWidth / setColor / RemoteCollectionItems and dynamic colors.
         minSdk = 31
         targetSdk = 36

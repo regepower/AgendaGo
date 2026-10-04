@@ -1,4 +1,4 @@
-package com.regepower.mincalwidget.widget
+package com.regepower.zenday.widget
 
 import android.Manifest
 import android.app.PendingIntent
@@ -12,14 +12,14 @@ import android.provider.CalendarContract
 import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
-import com.regepower.mincalwidget.OpenEventActivity
-import com.regepower.mincalwidget.R
-import com.regepower.mincalwidget.SettingsActivity
-import com.regepower.mincalwidget.data.DateLabels
-import com.regepower.mincalwidget.data.Event
-import com.regepower.mincalwidget.data.EventRepository
-import com.regepower.mincalwidget.data.FontStyle
-import com.regepower.mincalwidget.data.WidgetPrefs
+import com.regepower.zenday.OpenEventActivity
+import com.regepower.zenday.R
+import com.regepower.zenday.SettingsActivity
+import com.regepower.zenday.data.DateLabels
+import com.regepower.zenday.data.Event
+import com.regepower.zenday.data.EventRepository
+import com.regepower.zenday.data.FontStyle
+import com.regepower.zenday.data.WidgetPrefs
 
 /** Builds the RemoteViews of one widget. Must not run on the main thread (calendar query). */
 object WidgetRenderer {

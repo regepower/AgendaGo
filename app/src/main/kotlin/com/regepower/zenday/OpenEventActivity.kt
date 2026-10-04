@@ -1,4 +1,4 @@
-package com.regepower.mincalwidget
+package com.regepower.zenday
 
 import android.app.Activity
 import android.content.ActivityNotFoundException

@@ -1,11 +1,11 @@
-package com.regepower.mincalwidget.data
+package com.regepower.zenday.data
 
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.provider.ContactsContract.Contacts
 import android.provider.ContactsContract.Data
-import com.regepower.mincalwidget.R
+import com.regepower.zenday.R
 import java.time.LocalDate
 import java.time.ZoneOffset
 import android.provider.ContactsContract.CommonDataKinds.Event as ContactEvent

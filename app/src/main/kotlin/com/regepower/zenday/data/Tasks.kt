@@ -1,4 +1,4 @@
-package com.regepower.mincalwidget.data
+package com.regepower.zenday.data
 
 import android.content.Context
 import android.content.pm.PackageManager
