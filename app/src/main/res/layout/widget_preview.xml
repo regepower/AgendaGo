@@ -19,7 +19,7 @@
         <ImageView
             android:layout_width="8dp"
             android:layout_height="8dp"
-            android:layout_marginEnd="5dp"
+            android:layout_marginEnd="3dp"
             android:importantForAccessibility="no"
             android:src="@drawable/dot"
             android:tint="#43A047" />
@@ -57,7 +57,7 @@
         <ImageView
             android:layout_width="8dp"
             android:layout_height="8dp"
-            android:layout_marginEnd="5dp"
+            android:layout_marginEnd="3dp"
             android:importantForAccessibility="no"
             android:src="@drawable/dot"
             android:tint="#1E88E5" />
@@ -104,7 +104,7 @@
         <ImageView
             android:layout_width="8dp"
             android:layout_height="8dp"
-            android:layout_marginEnd="5dp"
+            android:layout_marginEnd="3dp"
             android:importantForAccessibility="no"
             android:src="@drawable/dot"
             android:tint="#E53935" />
