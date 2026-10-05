@@ -934,7 +934,7 @@ class SettingsActivity : Activity() {
                 st.error != null -> getString(R.string.ews_error, st.error)
                 st.synced > 0 -> {
                     val flags = DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_ABBREV_ALL
-                    getString(R.string.ews_synced, DateUtils.formatDateTime(this, st.synced, flags), st.count)
+                    resources.getQuantityString(R.plurals.ews_synced, st.count, DateUtils.formatDateTime(this, st.synced, flags), st.count)
                 }
                 else -> getString(R.string.ews_not_synced)
             }

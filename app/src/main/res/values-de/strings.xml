@@ -65,9 +65,11 @@
     <string name="ews_password_saved">Gespeichert – leer lassen, um es zu behalten</string>
     <string name="btn_ews_test">Verbindung testen</string>
     <string name="ews_testing">Verbinde …</string>
-    <string name="ews_ok">Verbunden · %1$d offene Aufgaben</string>
     <string name="ews_error">Fehler: %1$s</string>
-    <string name="ews_synced">Zuletzt abgerufen %1$s · %2$d offen</string>
+    <plurals name="ews_synced">
+        <item quantity="one">Zuletzt abgerufen %1$s · %2$d offen</item>
+        <item quantity="other">Zuletzt abgerufen %1$s · %2$d offen</item>
+    </plurals>
     <string name="ews_not_synced">Noch nicht verbunden: Daten eingeben und Verbindung testen.</string>
     <string name="ews_https">Die URL muss mit https:// beginnen</string>
     <string name="ews_missing">URL, Benutzer und Passwort eingeben.</string>

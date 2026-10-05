@@ -66,9 +66,11 @@
     <string name="ews_password_saved">Saved – leave empty to keep it</string>
     <string name="btn_ews_test">Test connection</string>
     <string name="ews_testing">Connecting …</string>
-    <string name="ews_ok">Connected · %1$d open tasks</string>
     <string name="ews_error">Error: %1$s</string>
-    <string name="ews_synced">Last sync %1$s · %2$d open</string>
+    <plurals name="ews_synced">
+        <item quantity="one">Last sync %1$s · %2$d open</item>
+        <item quantity="other">Last sync %1$s · %2$d open</item>
+    </plurals>
     <string name="ews_not_synced">Not connected yet: enter the data and test the connection.</string>
     <string name="ews_https">The URL must start with https://</string>
     <string name="ews_missing">Enter URL, user and password.</string>
