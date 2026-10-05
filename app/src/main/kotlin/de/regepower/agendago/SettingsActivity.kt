@@ -12,6 +12,7 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputFilter
@@ -20,6 +21,7 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.TextUtils
 import android.text.TextWatcher
+import android.text.format.DateUtils
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
 import android.view.Gravity
@@ -30,6 +32,7 @@ import android.widget.CheckBox
 import android.widget.CompoundButton
 import android.widget.EditText
 import android.widget.GridLayout
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioButton
@@ -39,13 +42,17 @@ import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
 import de.regepower.agendago.data.Birthdays
 import de.regepower.agendago.data.CalendarColors
 import de.regepower.agendago.data.CalendarInfo
 import de.regepower.agendago.data.DateLabels
 import de.regepower.agendago.data.Event
 import de.regepower.agendago.data.EventRepository
+import de.regepower.agendago.data.Ews
 import de.regepower.agendago.data.FontStyle
+import de.regepower.agendago.data.OpenTasks
 import de.regepower.agendago.data.PaletteColor
 import de.regepower.agendago.data.TaskList
 import de.regepower.agendago.data.Tasks
@@ -72,8 +79,16 @@ class SettingsActivity : Activity() {
     private lateinit var birthdaySwitch: CompoundButton
     private lateinit var tasksSwitch: CompoundButton
     private lateinit var tasksNoDateSwitch: CompoundButton
-    private lateinit var taskListBtn: Button
+    private lateinit var sourcesBtn: Button
+    private lateinit var sourcesInfo: TextView
     private var taskLists: List<TaskList> = emptyList()
+    private var openTaskLists: List<TaskList> = emptyList()
+
+    /** Views of the task-sources screen; null while the main screen is shown. */
+    private var sources: SourceViews? = null
+
+    /** OnBackInvokedCallback (API 33+) while the sources screen is open; Any keeps API 31 safe. */
+    private var backCallback: Any? = null
     private lateinit var previewBox: LinearLayout
 
     private val dp get() = resources.displayMetrics.density
@@ -106,6 +121,7 @@ class SettingsActivity : Activity() {
     override fun onResume() {
         super.onResume()
         refreshPermission()
+        refreshSources()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -126,10 +142,13 @@ class SettingsActivity : Activity() {
         }
         if (requestCode == REQUEST_WRITE_CALENDAR && CalendarColors.canWrite(this)) openCalendarColors()
         if (requestCode == REQUEST_TASKS) {
-            val granted = Tasks.permitted(this)
-            prefs = prefs.copy(tasks = granted)
-            tasksSwitch.isChecked = granted
-            updateTaskControls()
+            prefs = prefs.copy(tasksOrg = Tasks.permitted(this))
+            refreshSources()
+            loadData()
+        }
+        if (requestCode == REQUEST_OPENTASKS) {
+            prefs = prefs.copy(openTasks = OpenTasks.permitted(this))
+            refreshSources()
             loadData()
         }
         if (requestCode == REQUEST_CONTACTS) {
@@ -156,6 +175,15 @@ class SettingsActivity : Activity() {
     private fun show(id: Int?) {
         widgetId = id
         prefs = WidgetPrefs.load(this, id)
+        sources = null
+        showMain()
+    }
+
+    /** Main settings screen; also the way back from the task sources. */
+    private fun showMain() {
+        sources?.let { saveEwsFields(it) }
+        sources = null
+        setBackHandler(false)
         setContentView(buildLayout())
         refreshPermission()
     }
@@ -204,6 +232,9 @@ class SettingsActivity : Activity() {
             fullWidth(top = 8),
         )
 
+        // Tasks right after the calendars: both decide what the widget lists.
+        root.addView(tasksCard(), fullWidth(top = 12))
+
         root.addView(
             card().apply {
                 addView(header(R.string.section_display))
@@ -240,8 +271,6 @@ class SettingsActivity : Activity() {
             },
             fullWidth(top = 12),
         )
-
-        root.addView(tasksCard(), fullWidth(top = 12))
 
         root.addView(
             card().apply {
@@ -359,13 +388,16 @@ class SettingsActivity : Activity() {
                     emptyList<CalendarInfo>() to emptyList<Event>()
                 }
             val lists = Tasks.lists(this)
+            val otLists = OpenTasks.lists(this)
             runOnUiThread {
                 if (isFinishing) return@runOnUiThread
                 calendars = cals
                 previewEvents = events
                 taskLists = lists
+                openTaskLists = otLists
                 updateCalendarButton()
-                updateTaskListButton()
+                updateTaskControls()
+                refreshSources()
                 renderPreview()
             }
         }.start()
@@ -675,17 +707,22 @@ class SettingsActivity : Activity() {
         return hex.toLong(HEX_RADIX).toInt() or OPAQUE
     }
 
-    // ---- tasks (Google Tasks via Tasks.org) ----------------------------------------------
+    // ---- tasks (main card) --------------------------------------------------------------
 
     private fun tasksCard() =
         card().apply {
             addView(header(R.string.section_tasks))
             tasksSwitch =
-                switchRow(R.string.show_tasks, prefs.tasks && Tasks.permitted(context)) { on -> onTasksToggled(on) }
-                    .also { it.tooltipText = getString(R.string.help_tasks) }
+                switchRow(R.string.show_tasks, prefs.tasks) { on ->
+                    prefs = prefs.copy(tasks = on)
+                    updateTaskControls()
+                    loadData()
+                }.also { it.tooltipText = getString(R.string.help_tasks) }
             addView(tasksSwitch, fullWidth(top = 4))
-            taskListBtn = button(R.string.task_lists_all) { pickTaskLists() }
-            addView(taskListBtn, fullWidth(top = 4))
+            sourcesInfo = secondaryText()
+            addView(sourcesInfo, fullWidth(top = 4))
+            sourcesBtn = button(R.string.btn_task_sources) { showSources() }
+            addView(sourcesBtn, fullWidth(top = 8))
             tasksNoDateSwitch =
                 switchRow(R.string.tasks_without_date, prefs.tasksWithoutDate) {
                     prefs = prefs.copy(tasksWithoutDate = it)
@@ -695,57 +732,412 @@ class SettingsActivity : Activity() {
             updateTaskControls()
         }
 
-    private fun onTasksToggled(on: Boolean) {
-        when {
-            !on -> {
-                prefs = prefs.copy(tasks = false)
-                updateTaskControls()
-                loadData()
-            }
-            !Tasks.installed(this) -> {
-                tasksSwitch.isChecked = false
-                AlertDialog
-                    .Builder(this)
-                    .setTitle(R.string.show_tasks)
-                    .setMessage(R.string.tasks_install)
-                    .setPositiveButton(R.string.btn_install) { _, _ -> openStore() }
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show()
-            }
-            !Tasks.permitted(this) -> requestPermissions(arrayOf(Tasks.PERMISSION), REQUEST_TASKS)
-            else -> {
-                prefs = prefs.copy(tasks = true)
-                updateTaskControls()
-                loadData()
-            }
-        }
-    }
-
-    private fun openStore() {
-        val market = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${Tasks.PACKAGE}"))
-        try {
-            startActivity(market)
-        } catch (e: ActivityNotFoundException) {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=${Tasks.PACKAGE}")))
-        }
-    }
-
     private fun updateTaskControls() {
-        val on = prefs.tasks && Tasks.permitted(this)
-        taskListBtn.isEnabled = on
-        tasksNoDateSwitch.isEnabled = on
-        taskListBtn.alpha = if (on) 1f else DISABLED_ALPHA
-        updateTaskListButton()
+        if (!::sourcesInfo.isInitialized) return
+        tasksNoDateSwitch.isEnabled = prefs.tasks
+        val names =
+            buildList {
+                if (prefs.tasksOrg && Tasks.permitted(this@SettingsActivity)) add(getString(R.string.src_tasksorg))
+                if (prefs.openTasks && OpenTasks.permitted(this@SettingsActivity)) add(getString(R.string.src_opentasks))
+                if (prefs.ews) add(getString(R.string.src_ews))
+            }
+        sourcesInfo.text =
+            if (names.isEmpty()) {
+                getString(
+                    R.string.task_sources_none,
+                )
+            } else {
+                getString(R.string.task_sources_active, names.joinToString(" · "))
+            }
     }
 
-    private fun updateTaskListButton() {
-        val chosen = taskLists.filter { it.id in prefs.taskListIds }
-        taskListBtn.text =
+    // ---- task sources screen ------------------------------------------------------------
+
+    /** Views of the task-sources screen that change after permission dialogs and tests. */
+    private class SourceViews(
+        val tasksOrg: CompoundButton,
+        val tasksOrgStatus: TextView,
+        val taskLists: Button,
+        val openTasks: CompoundButton,
+        val openTasksStatus: TextView,
+        val openTaskLists: Button,
+        val ews: CompoundButton,
+        val ewsUrl: EditText,
+        val ewsUser: EditText,
+        val ewsPassword: EditText,
+        val ewsStatus: TextView,
+    )
+
+    /** True while switches are set from code, so their listeners do not start permission flows. */
+    private var settingSwitches = false
+
+    private fun showSources() {
+        val root =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(px(16), px(12), px(16), px(16))
+            }
+        root.addView(subHeader(R.string.task_sources_title), fullWidth())
+
+        val tasksOrg = switchRow(R.string.use_source, false) { onTasksOrgToggled(it) }
+        val tasksOrgStatus = secondaryText()
+        val taskLists = button(R.string.task_lists_all) { pickTaskLists() }
+        root.addView(sourceCard(R.string.src_tasksorg, R.string.src_tasksorg_sub, tasksOrg, tasksOrgStatus, taskLists), fullWidth(top = 12))
+
+        val openTasks = switchRow(R.string.use_source, false) { onOpenTasksToggled(it) }
+        val openTasksStatus = secondaryText()
+        val openTaskLists = button(R.string.task_lists_all) { pickOpenTaskLists() }
+        root.addView(
+            sourceCard(R.string.src_opentasks, R.string.src_opentasks_sub, openTasks, openTasksStatus, openTaskLists),
+            fullWidth(top = 12),
+        )
+
+        val ews =
+            switchRow(R.string.use_source, prefs.ews) { on ->
+                if (!settingSwitches) {
+                    prefs = prefs.copy(ews = on)
+                    updateTaskControls()
+                    loadData()
+                }
+            }
+        val ewsUrl =
+            field(R.string.ews_url_hint, Ews.url(this), InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI)
+        val ewsUser = field(R.string.ews_user_hint, Ews.user(this), InputType.TYPE_CLASS_TEXT)
+        val ewsPassword =
+            field(
+                if (Ews.hasPassword(this)) R.string.ews_password_saved else R.string.ews_password,
+                "",
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD,
+            )
+        val ewsStatus = secondaryText()
+        val ewsCard =
+            sourceCard(R.string.src_ews, R.string.src_ews_sub, ews, ewsStatus, null).apply {
+                tooltipText = getString(R.string.help_ews)
+                for ((label, edit) in listOf(
+                    R.string.ews_url to ewsUrl,
+                    R.string.ews_user to ewsUser,
+                    R.string.ews_password to ewsPassword,
+                )) {
+                    addView(secondaryText().apply { setText(label) }, fullWidth(top = 8))
+                    addView(edit, fullWidth())
+                }
+            }
+        val views =
+            SourceViews(
+                tasksOrg,
+                tasksOrgStatus,
+                taskLists,
+                openTasks,
+                openTasksStatus,
+                openTaskLists,
+                ews,
+                ewsUrl,
+                ewsUser,
+                ewsPassword,
+                ewsStatus,
+            )
+        ewsCard.addView(button(R.string.btn_ews_test) { testEws(views) }, fullWidth(top = 8))
+        root.addView(ewsCard, fullWidth(top = 12))
+
+        root.addView(
+            button(R.string.btn_done) { showMain() }.also { style(it, R.color.md_primary, R.color.md_on_primary) },
+            fullWidth(top = 12),
+        )
+
+        sources = views
+        setContentView(
+            ScrollView(this).apply {
+                fitsSystemWindows = true
+                addView(root)
+            },
+        )
+        setBackHandler(true)
+        refreshSources()
+    }
+
+    /** Back arrow + title, same size as the app name in the main header. */
+    private fun subHeader(title: Int) =
+        LinearLayout(this).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            val tv = android.util.TypedValue()
+            theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, tv, true)
+            addView(
+                ImageButton(context).apply {
+                    setImageResource(R.drawable.ic_back)
+                    imageTintList = ColorStateList.valueOf(getColor(R.color.md_primary))
+                    setBackgroundResource(tv.resourceId)
+                    contentDescription = getString(R.string.btn_back)
+                    tooltipText = getString(R.string.btn_back)
+                    setOnClickListener { showMain() }
+                },
+                LinearLayout.LayoutParams(px(44), px(44)),
+            )
+            addView(
+                TextView(context).apply {
+                    setText(title)
+                    textSize = 24f
+                    setTypeface(typeface, Typeface.BOLD)
+                    setTextColor(getColor(R.color.md_on_container))
+                },
+                LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = px(8) },
+            )
+        }
+
+    private fun sourceCard(
+        title: Int,
+        subtitle: Int,
+        switch: CompoundButton,
+        status: TextView,
+        listButton: Button?,
+    ) = card().apply {
+        addView(header(title))
+        addView(secondaryText().apply { setText(subtitle) }, fullWidth(top = 2))
+        addView(switch, fullWidth(top = 4))
+        addView(status, fullWidth())
+        if (listButton != null) addView(listButton, fullWidth(top = 8))
+    }
+
+    private fun secondaryText() =
+        TextView(this).apply {
+            textSize = 13f
+            setTextColor(getColor(R.color.md_on_surface_variant))
+        }
+
+    private fun field(
+        hint: Int,
+        value: String,
+        type: Int,
+    ) = EditText(this).apply {
+        setHint(hint)
+        setText(value)
+        inputType = type
+        isSingleLine = true
+    }
+
+    /** Re-reads install/permission state, lists and EWS status into the sources screen. */
+    private fun refreshSources() {
+        val v = sources ?: return
+        val orgOk = Tasks.permitted(this)
+        val otOk = OpenTasks.permitted(this)
+        settingSwitches = true
+        v.tasksOrg.isChecked = prefs.tasksOrg && orgOk
+        v.openTasks.isChecked = prefs.openTasks && otOk
+        v.ews.isChecked = prefs.ews
+        settingSwitches = false
+        v.tasksOrgStatus.text = providerStatus(Tasks.installed(this), orgOk, taskLists.size)
+        v.openTasksStatus.text = providerStatus(OpenTasks.installed(this), otOk, openTaskLists.size)
+        listButton(v.taskLists, prefs.tasksOrg && orgOk, taskLists, prefs.taskListIds)
+        listButton(v.openTaskLists, prefs.openTasks && otOk, openTaskLists, prefs.openTaskListIds)
+        val st = Ews.status(this)
+        v.ewsStatus.text =
             when {
-                prefs.taskListIds.isEmpty() || chosen.isEmpty() -> getString(R.string.task_lists_all)
+                st.error != null -> getString(R.string.ews_error, st.error)
+                st.synced > 0 -> {
+                    val flags = DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_ABBREV_ALL
+                    getString(R.string.ews_synced, DateUtils.formatDateTime(this, st.synced, flags), st.count)
+                }
+                else -> getString(R.string.ews_not_synced)
+            }
+        updateTaskControls()
+    }
+
+    private fun providerStatus(
+        installed: Boolean,
+        permitted: Boolean,
+        lists: Int,
+    ): String =
+        when {
+            !installed -> getString(R.string.status_not_installed)
+            !permitted -> getString(R.string.status_no_permission)
+            else -> resources.getQuantityString(R.plurals.status_lists, lists, lists)
+        }
+
+    private fun listButton(
+        button: Button,
+        enabled: Boolean,
+        lists: List<TaskList>,
+        ids: Set<Long>,
+    ) {
+        button.isEnabled = enabled
+        button.alpha = if (enabled) 1f else DISABLED_ALPHA
+        val chosen = lists.filter { it.id in ids }
+        button.text =
+            when {
+                ids.isEmpty() || chosen.isEmpty() -> getString(R.string.task_lists_all)
                 chosen.size <= 2 -> chosen.joinToString(", ") { it.title }
                 else -> resources.getQuantityString(R.plurals.task_lists_some, chosen.size, chosen.size)
             }
+    }
+
+    private fun onTasksOrgToggled(on: Boolean) {
+        if (settingSwitches) return
+        when {
+            !on -> {
+                prefs = prefs.copy(tasksOrg = false)
+                refreshSources()
+                loadData()
+            }
+            !Tasks.installed(this) -> {
+                refreshSources()
+                installDialog(R.string.src_tasksorg, R.string.tasks_install, Tasks.PACKAGE)
+            }
+            !Tasks.permitted(this) -> requestPermissions(arrayOf(Tasks.PERMISSION), REQUEST_TASKS)
+            else -> {
+                prefs = prefs.copy(tasksOrg = true)
+                refreshSources()
+                loadData()
+            }
+        }
+    }
+
+    private fun onOpenTasksToggled(on: Boolean) {
+        if (settingSwitches) return
+        when {
+            !on -> {
+                prefs = prefs.copy(openTasks = false)
+                refreshSources()
+                loadData()
+            }
+            !OpenTasks.installed(this) -> {
+                refreshSources()
+                installDialog(R.string.src_opentasks, R.string.opentasks_install, OpenTasks.PACKAGE)
+            }
+            !OpenTasks.permitted(this) -> requestPermissions(arrayOf(OpenTasks.PERMISSION), REQUEST_OPENTASKS)
+            else -> {
+                prefs = prefs.copy(openTasks = true)
+                refreshSources()
+                loadData()
+            }
+        }
+    }
+
+    private fun installDialog(
+        title: Int,
+        text: Int,
+        pkg: String,
+    ) {
+        AlertDialog
+            .Builder(this)
+            .setTitle(title)
+            .setMessage(text)
+            .setPositiveButton(R.string.btn_install) { _, _ -> openStore(pkg) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun openStore(pkg: String) {
+        val market = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$pkg"))
+        try {
+            startActivity(market)
+        } catch (e: ActivityNotFoundException) {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$pkg")))
+        }
+    }
+
+    private fun pickTaskLists() {
+        if (taskLists.isEmpty()) {
+            message(R.string.pick_task_lists_title, R.string.no_task_lists)
+            return
+        }
+        val items =
+            taskLists.map {
+                PickItem(it.id, it.title, it.account, it.color.takeIf { c -> c != 0 } ?: Tasks.DEFAULT_COLOR, R.drawable.task_box)
+            }
+        multiPicker(R.string.pick_task_lists_title, items, prefs.taskListIds) { ids ->
+            prefs = prefs.copy(taskListIds = ids)
+            refreshSources()
+            loadData()
+        }
+    }
+
+    private fun pickOpenTaskLists() {
+        if (openTaskLists.isEmpty()) {
+            message(R.string.pick_task_lists_title, R.string.no_opentask_lists)
+            return
+        }
+        val items =
+            openTaskLists.map {
+                PickItem(it.id, it.title, it.account, it.color.takeIf { c -> c != 0 } ?: Tasks.DEFAULT_COLOR, R.drawable.task_box)
+            }
+        multiPicker(R.string.pick_task_lists_title, items, prefs.openTaskListIds) { ids ->
+            prefs = prefs.copy(openTaskListIds = ids)
+            refreshSources()
+            loadData()
+        }
+    }
+
+    /** Stores changed URL/user and a newly typed password; the field is emptied afterwards. */
+    private fun saveEwsFields(v: SourceViews) {
+        val url =
+            v.ewsUrl.text
+                .toString()
+                .trim()
+        val user =
+            v.ewsUser.text
+                .toString()
+                .trim()
+        val password = v.ewsPassword.text.toString()
+        if (url == Ews.url(this) && user == Ews.user(this) && password.isEmpty()) return
+        Ews.saveAccount(this, url, user, password.ifEmpty { null })
+        v.ewsPassword.setText("")
+        v.ewsPassword.setHint(R.string.ews_password_saved)
+    }
+
+    private fun testEws(v: SourceViews) {
+        val url =
+            v.ewsUrl.text
+                .toString()
+                .trim()
+        val user =
+            v.ewsUser.text
+                .toString()
+                .trim()
+        val password = v.ewsPassword.text.toString()
+        if (url.isEmpty() || user.isEmpty() || (password.isEmpty() && !Ews.hasPassword(this))) {
+            v.ewsStatus.text = getString(R.string.ews_missing)
+            return
+        }
+        if (!url.startsWith("https://", ignoreCase = true)) {
+            v.ewsStatus.text = getString(R.string.ews_https)
+            return
+        }
+        saveEwsFields(v)
+        v.ewsStatus.text = getString(R.string.ews_testing)
+        val app = applicationContext
+        Thread {
+            val ok = Ews.sync(app).tasks != null
+            runOnUiThread {
+                if (isFinishing) return@runOnUiThread
+                // A working connection switches the source on.
+                if (ok && !prefs.ews) prefs = prefs.copy(ews = true)
+                refreshSources()
+                loadData()
+            }
+        }.start()
+    }
+
+    /** Back from the sources screen: callback on Android 13+, onBackPressed on Android 12. */
+    private fun setBackHandler(on: Boolean) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val current = backCallback as? OnBackInvokedCallback
+        if (on && current == null) {
+            val callback = OnBackInvokedCallback { showMain() }
+            onBackInvokedDispatcher.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, callback)
+            backCallback = callback
+        } else if (!on && current != null) {
+            onBackInvokedDispatcher.unregisterOnBackInvokedCallback(current)
+            backCallback = null
+        }
+    }
+
+    @Deprecated("Android 12 path; Android 13+ uses the OnBackInvokedCallback from setBackHandler.")
+    override fun onBackPressed() {
+        if (sources != null) {
+            showMain()
+        } else {
+            @Suppress("DEPRECATION")
+            super.onBackPressed()
+        }
     }
 
     private fun updateCalendarButton() {
@@ -776,22 +1168,6 @@ class SettingsActivity : Activity() {
         multiPicker(R.string.pick_calendars_title, items, prefs.calendarIds) { ids ->
             prefs = prefs.copy(calendarIds = ids)
             updateCalendarButton()
-            loadData()
-        }
-    }
-
-    private fun pickTaskLists() {
-        if (taskLists.isEmpty()) {
-            message(R.string.pick_task_lists_title, R.string.no_task_lists)
-            return
-        }
-        val items =
-            taskLists.map {
-                PickItem(it.id, it.title, it.account, it.color.takeIf { c -> c != 0 } ?: Tasks.DEFAULT_COLOR, R.drawable.task_box)
-            }
-        multiPicker(R.string.pick_task_lists_title, items, prefs.taskListIds) { ids ->
-            prefs = prefs.copy(taskListIds = ids)
-            updateTaskListButton()
             loadData()
         }
     }
@@ -1005,8 +1381,18 @@ class SettingsActivity : Activity() {
     // ---- actions ------------------------------------------------------------------------
 
     private fun apply() {
+        sources?.let { saveEwsFields(it) }
         WidgetPrefs.save(this, widgetId, prefs)
-        refreshWidgets()
+        if (prefs.tasks && prefs.ews && Ews.configured(this)) {
+            // First fetch right away; the periodic job takes over afterwards.
+            val app = applicationContext
+            Thread {
+                Ews.sync(app)
+                WidgetUpdater.updateAll(app)
+            }.start()
+        } else {
+            refreshWidgets()
+        }
         val id = widgetId
         if (id != null) {
             setResult(RESULT_OK, resultData(id))
@@ -1178,6 +1564,7 @@ class SettingsActivity : Activity() {
         private const val REQUEST_CONTACTS = 2
         private const val REQUEST_TASKS = 3
         private const val REQUEST_WRITE_CALENDAR = 4
+        private const val REQUEST_OPENTASKS = 5
         private const val SWATCH_COLUMNS = 6
         private const val SWATCH_DP = 44
         private const val RGB_MASK = 0xFFFFFF

@@ -15,6 +15,8 @@ import android.provider.CalendarContract
 import android.provider.ContactsContract
 import de.regepower.agendago.data.Birthdays
 import de.regepower.agendago.data.CalendarColors
+import de.regepower.agendago.data.Ews
+import de.regepower.agendago.data.OpenTasks
 import de.regepower.agendago.data.Tasks
 import de.regepower.agendago.data.WidgetPrefs
 import java.time.LocalDate
@@ -81,8 +83,10 @@ object WidgetUpdater {
         val ids = manager.getAppWidgetIds(ComponentName(context, CalendarWidgetProvider::class.java))
         if (ids.isEmpty()) {
             RefreshScheduler.cancel(context)
+            EwsSyncJob.schedule(context, false)
             return
         }
+        EwsSyncJob.schedule(context, ids.any { WidgetPrefs.load(context, it).let { p -> p.tasks && p.ews } })
         val now = System.currentTimeMillis()
         val zone = ZoneId.systemDefault()
         // "Today"/"Tmrw" labels change at midnight; finished events must disappear at their end.
@@ -131,6 +135,8 @@ object RefreshScheduler {
         if (Birthdays.permitted(context)) uris += ContactsContract.Contacts.CONTENT_URI
         // Tasks: Tasks.org notifies below content://org.tasks.api/v0 on every task change.
         if (Tasks.permitted(context)) uris += Tasks.CHANGE_URI
+        // OpenTasks notifies below content://org.dmfs.tasks (DAVx⁵ sync, edits).
+        if (OpenTasks.permitted(context)) uris += OpenTasks.CHANGE_URI
         val pending = jobs.getPendingJob(JOB_ID)
         if (!force && pending != null && pending.triggerContentUris?.size == uris.size) return
         val builder = JobInfo.Builder(JOB_ID, ComponentName(context, CalendarChangeJob::class.java))
@@ -143,6 +149,7 @@ object RefreshScheduler {
     fun cancel(context: Context) {
         context.getSystemService(AlarmManager::class.java)?.cancel(alarmIntent(context))
         context.getSystemService(JobScheduler::class.java)?.cancel(JOB_ID)
+        EwsSyncJob.schedule(context, false)
     }
 
     private fun alarmIntent(context: Context): PendingIntent =
@@ -176,4 +183,51 @@ class CalendarChangeJob : JobService() {
             .getInstance(context)
             .getAppWidgetIds(ComponentName(context, CalendarWidgetProvider::class.java))
             .isNotEmpty()
+}
+
+/**
+ * Fetches Exchange tasks every 30 minutes while a network is available, then redraws the
+ * widgets. Exchange has no push to a third-party app, so this is the only polling in the app,
+ * and only while an EWS source is switched on.
+ */
+class EwsSyncJob : JobService() {
+    override fun onStartJob(params: JobParameters): Boolean {
+        Thread {
+            try {
+                Ews.sync(applicationContext)
+                WidgetUpdater.updateAll(applicationContext)
+            } finally {
+                jobFinished(params, false)
+            }
+        }.start()
+        return true
+    }
+
+    override fun onStopJob(params: JobParameters): Boolean = true
+
+    companion object {
+        private const val JOB_ID = 2
+        private const val PERIOD_MS = 30L * 60 * 1000
+
+        /** Schedules (once) or cancels the periodic fetch. */
+        fun schedule(
+            context: Context,
+            on: Boolean,
+        ) {
+            val jobs = context.getSystemService(JobScheduler::class.java) ?: return
+            if (!on || !Ews.configured(context)) {
+                if (jobs.getPendingJob(JOB_ID) != null) jobs.cancel(JOB_ID)
+                return
+            }
+            if (jobs.getPendingJob(JOB_ID) != null) return
+            jobs.schedule(
+                JobInfo
+                    .Builder(JOB_ID, ComponentName(context, EwsSyncJob::class.java))
+                    .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                    .setPeriodic(PERIOD_MS)
+                    .setPersisted(true)
+                    .build(),
+            )
+        }
+    }
 }

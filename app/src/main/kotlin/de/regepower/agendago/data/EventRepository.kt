@@ -154,7 +154,7 @@ class EventRepository(
                 notOver && e.startDay(zone) < lastDay
             }
         // Tasks are pre-filtered: overdue ones stay, so they are added after the "not over" filter.
-        val tasks = if (prefs.tasks) Tasks.upcoming(context, prefs, lastDay) else emptyList()
+        val tasks = if (prefs.tasks) TaskSources.upcoming(context, prefs, lastDay) else emptyList()
         return (visible + tasks)
             .sortedWith(compareBy({ sortKey(it, zone, today, now) }, { !it.allDay }, { it.title.lowercase() }))
             .take(prefs.maxEvents)

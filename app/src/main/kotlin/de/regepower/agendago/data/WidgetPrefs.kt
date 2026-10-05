@@ -36,6 +36,12 @@ data class WidgetPrefs(
     /** Empty = all task lists. */
     val taskListIds: Set<Long> = emptySet(),
     val tasksWithoutDate: Boolean = false,
+    /** Task sources; Tasks.org stays on by default for widgets set up before the source choice. */
+    val tasksOrg: Boolean = true,
+    val openTasks: Boolean = false,
+    /** Empty = all OpenTasks lists. */
+    val openTaskListIds: Set<Long> = emptySet(),
+    val ews: Boolean = false,
 ) {
     companion object {
         val EVENTS = 1..50
@@ -50,7 +56,7 @@ data class WidgetPrefs(
         fun store(context: Context): SharedPreferences = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
         /** Calendar and task-list IDs differ per phone: not exported, not overwritten on import. */
-        fun isDeviceKey(key: String) = key.endsWith(".cals") || key.endsWith(".tasklists")
+        fun isDeviceKey(key: String) = key.endsWith(".cals") || key.endsWith(".tasklists") || key.endsWith(".otlists")
 
         private fun prefix(widgetId: Int?) = if (widgetId == null) DEFAULT else "w$widgetId."
 
@@ -80,6 +86,12 @@ data class WidgetPrefs(
                     sp.getStringSet(p + "tasklists", null)?.mapNotNull { it.toLongOrNull() }?.toSet()
                         ?: d.taskListIds,
                 tasksWithoutDate = sp.getBoolean(p + "tasksnodate", d.tasksWithoutDate),
+                tasksOrg = sp.getBoolean(p + "src_tasksorg", d.tasksOrg),
+                openTasks = sp.getBoolean(p + "src_opentasks", d.openTasks),
+                openTaskListIds =
+                    sp.getStringSet(p + "otlists", null)?.mapNotNull { it.toLongOrNull() }?.toSet()
+                        ?: d.openTaskListIds,
+                ews = sp.getBoolean(p + "src_ews", d.ews),
             )
         }
 
@@ -105,6 +117,10 @@ data class WidgetPrefs(
                     .putBoolean(p + "tasks", prefs.tasks)
                     .putStringSet(p + "tasklists", prefs.taskListIds.map { it.toString() }.toSet())
                     .putBoolean(p + "tasksnodate", prefs.tasksWithoutDate)
+                    .putBoolean(p + "src_tasksorg", prefs.tasksOrg)
+                    .putBoolean(p + "src_opentasks", prefs.openTasks)
+                    .putStringSet(p + "otlists", prefs.openTaskListIds.map { it.toString() }.toSet())
+                    .putBoolean(p + "src_ews", prefs.ews)
             }
             editor.apply()
         }

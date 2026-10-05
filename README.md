@@ -7,7 +7,10 @@ A calm home-screen agenda: upcoming events, contact birthdays and open tasks in 
 - Event list with calendar colour, date/time column and title (optional location)
 - Choose calendars, number of events and number of days
 - Birthdays read directly from your contacts (with age)
-- Open Google Tasks via Tasks.org 15.12+, selectable task lists, overdue tasks highlighted
+- Open tasks from several sources, overdue tasks highlighted, configured in their own *Task sources* screen:
+  - Tasks.org 15.12+ (Google Tasks, Microsoft To Do, CalDAV), selectable lists
+  - OpenTasks (CalDAV via DAVx⁵), selectable lists
+  - On-premises Exchange via EWS (Basic or NTLMv2 login, fetched every 30 minutes, password encrypted with the Android Keystore and never exported)
 - Change calendar colours: Google palette synced to Google, own colours for Exchange/local calendars kept on the device
 - Save/load all settings as a JSON file, built-in help
 - Font (Standard, Serif, Monospace, Handwriting), font size and width of the date column
@@ -39,6 +42,8 @@ Local build: `gradle assembleRelease` (Gradle 8.11.1, JDK 17, Android SDK 36).
 
 - `READ_CALENDAR` – read events
 - `RECEIVE_BOOT_COMPLETED` – re-draw the widget after a reboot
+- Optional, asked only when switched on: `READ_CONTACTS` (birthdays), `org.tasks.permission.READ_TASKS` (Tasks.org), `org.dmfs.permission.READ_TASKS` (OpenTasks)
+- `INTERNET`, `ACCESS_NETWORK_STATE` – only used by the Exchange (EWS) source
 
 ## Support
 
