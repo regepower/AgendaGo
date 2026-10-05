@@ -8,7 +8,6 @@ import android.os.SystemClock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.ZoneOffset
 
 /** A Tasks.org list (e.g. a Google Tasks list) for the list picker. */
 data class TaskList(
@@ -32,13 +31,7 @@ object Tasks {
     /** Colour when a list has none (Google Tasks lists have no colour). */
     const val DEFAULT_COLOR = 0xFF1E88E5.toInt()
 
-    fun installed(context: Context): Boolean =
-        try {
-            context.packageManager.getPackageInfo(PACKAGE, 0)
-            true
-        } catch (e: PackageManager.NameNotFoundException) {
-            false
-        }
+    fun installed(context: Context) = TaskSources.installed(context, PACKAGE)
 
     fun permitted(context: Context) = installed(context) && context.checkSelfPermission(PERMISSION) == PackageManager.PERMISSION_GRANTED
 
@@ -59,11 +52,7 @@ object Tasks {
         return result.sortedWith(compareBy({ it.account.lowercase() }, { it.title.lowercase() }))
     }
 
-    /**
-     * Open tasks due before [lastDay] (overdue ones included) and, if [withoutDate], tasks without
-     * a due date. All-day dates come as local midnight; they are converted to UTC midnight like
-     * calendar all-day events, so [Event.startDay] works for both.
-     */
+    /** Open tasks due before [lastDay] (overdue ones included), optionally tasks without due date. */
     fun upcoming(
         context: Context,
         prefs: WidgetPrefs,
@@ -79,30 +68,20 @@ object Tasks {
                 val listId = c.getLong(4)
                 if (prefs.taskListIds.isNotEmpty() && listId !in prefs.taskListIds) continue
                 val due = c.getLong(2)
-                val allDay = c.getInt(3) != 0
-                val begin: Long
-                if (due == 0L) {
-                    if (!prefs.tasksWithoutDate) continue
-                    begin = 0L
-                } else {
-                    val day = Instant.ofEpochMilli(due).atZone(zone).toLocalDate()
-                    if (day >= lastDay) continue
-                    begin = if (allDay) day.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli() else due
-                }
                 val id = c.getLong(0)
-                result +=
-                    Event(
-                        instanceId = TASK_ID_BASE - id,
-                        eventId = 0,
-                        begin = begin,
-                        end = if (allDay && due != 0L) begin + DAY_MS else begin,
-                        allDay = allDay || due == 0L,
+                // All-day due dates come as local midnight.
+                TaskSources
+                    .row(
+                        stableId = TaskSources.TASKS_ORG_ID_BASE - id,
                         title = c.getString(1).orEmpty(),
-                        location = "",
+                        due = due,
+                        allDay = c.getInt(3) != 0,
+                        day = if (due == 0L) null else Instant.ofEpochMilli(due).atZone(zone).toLocalDate(),
                         color = colors[listId]?.takeIf { it != 0 } ?: DEFAULT_COLOR,
                         link = "$BASE/tasks/$id",
-                        kind = Event.Kind.TASK,
-                    )
+                        prefs = prefs,
+                        lastDay = lastDay,
+                    )?.let { result += it }
             }
         }
         return result
@@ -129,8 +108,4 @@ object Tasks {
     }
 
     private const val RETRY_MS = 400L
-    private const val DAY_MS = 24L * 60 * 60 * 1000
-
-    /** Keeps task ids apart from calendar instance ids and birthday ids in the stable-id list. */
-    private const val TASK_ID_BASE = -1_000_000_000_000L
 }
