@@ -27,7 +27,12 @@ Keep predicates in use: BootDelay boot counter keys, MinCalSync source/target ca
 - Picker dialogs: two-line items — name on line 1, details on line 2 via `SpannableString` with `RelativeSizeSpan(0.75f)` + `ForegroundColorSpan(md_outline)` passed to `setSingleChoiceItems`.
 
 ## Help
-Dialog built by `AppShell.showHelp`: `help_text` (EN + DE) is split at blank lines; a block starting with a `<b>Title</b>` line becomes a **foldable chapter** (tap the title, ▸/▾ + stateDescription for TalkBack), only the first chapter starts open, so long help stays short. Below the chapters: app name + version, `donate_text` and `foss_text` ("free and open-source software (FOSS) under GPL-3.0, source: %1$s" with `source_url`, auto-linked). Buttons `help_ok` ("Verstanden") and neutral `donate` (Liberapay). Sections: what the app does, setup steps, each feature in 1–2 sentences, OEM caveats, save/load. MinCalSync also opens help automatically on first start (nothing configured yet).
+Reference: AgendaGo `AppShell.showHelp` (user decisions, Oct 2026, all apps).
+- `help_text` (EN + DE) uses `<b>Title</b>\n` chapter titles and `\n` line breaks; chapters are separated by a blank line. Sections: what the app does, setup steps, each feature in 1–2 sentences, OEM caveats, save/load, privacy notes (e.g. how a stored password is kept).
+- **Foldable chapters:** `showHelp` splits `help_text` at blank lines; a block whose first line is bold becomes a tappable title (`help_open` "▾  %1$s" / `help_closed` "▸  %1$s", translatable="false", plus `stateDescription` `help_expanded`/`help_collapsed` for TalkBack). Only the first chapter starts open. Custom view in a `ScrollView`, not `setMessage`.
+- **Footer** via `help_footer` ("%1$s %2$s · %3$s\n%4$s\n\n%5$s", translatable="false"; a resource string because lint `SetTextI18n` flags concatenation): app name, versionName (`packageManager.getPackageInfo`, no BuildConfig), build day (manifest meta-data `build_date`, see SKILL.md → Versioning; `DateTimeFormatter.ofLocalizedDate(MEDIUM)`), `donate_text` ("Diese App wiegt weniger als ein Foto. Unterstütze die Entwicklung auf Liberapay." / EN "This app weighs less than a photo. Support its development on Liberapay."), then `foss_text` ("Diese App ist freie Open-Source-Software (FOSS) unter der Lizenz GPL-3.0.\nQuellcode: %1$s") with `source_url` = the app's GitHub repo (translatable="false"); `autoLinkMask = Linkify.WEB_URLS` set **before** the text so the URL is tappable. All our app repos are public with a GPL-3.0 `LICENSE`.
+- Buttons: `help_ok` ("Verstanden"), neutral `donate` ("Spenden"/"Donate") opens `donate_url` = `https://liberapay.com/regepower/donate` (translatable="false") via `ACTION_VIEW`, `ActivityNotFoundException` → toast with the URL. `.github/FUNDING.yml` lists `github: regepower` and `liberapay: regepower`.
+- MinCalSync also opens help automatically on first start (nothing configured yet).
 
 ## Config save/load (no permission)
 - User decision (ZenDay, Oct 2026), file dialog + remembered file:
@@ -41,6 +46,7 @@ Dialog built by `AppShell.showHelp`: `help_text` (EN + DE) is split at blank lin
 - `ConfigIO.kt` is generic — copy unchanged: exports all entries of one SharedPreferences file with type tags (`b/i/l/f/s/ss`) plus `"app"` name and `"format": 1`; import validates the whole file first (wrong app, broken JSON or unknown type → false, nothing changed), then removes all non-kept keys + typed puts + `commit()`. `keep: (String) -> Boolean` marks device-specific keys (neither exported nor overwritten).
 - Expose the app's store (`Prefs.sp`). Do not export device-specific state (boot counters, calendar IDs that differ per phone) — keep those in a second prefs file or skip their keys.
 - After import: re-apply running services (e.g. restart the VPN), then `recreate()`.
+- **Pitfall (BootDelay, Oct 2026):** if the activity saves its UI in `onPause()`, an import gets overwritten: `recreate()` runs after `onResume`, so the old (after a fresh install: empty) UI is saved back. Set a flag in `onLoaded` (`configLoaded = true; recreate()`) and return early from `save()`.
 - Tested on the JVM with a fake `SharedPreferences` and org.json built from GitHub source (Maven Central and Google Maven are blocked in the sandbox): round trip, wrong app, broken JSON, unknown type.
 
 ## "Show the active item, pick from a dialog"
