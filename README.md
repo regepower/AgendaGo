@@ -48,7 +48,7 @@ Local build: `gradle assembleRelease` (Gradle 8.11.1, JDK 17, Android SDK 36).
 
 ## Support
 
-This app weighs less than a photo. Support its development on [Liberapay](https://liberapay.com/regepower/donate) or [GitHub Sponsors](https://github.com/sponsors/regepower).
+This app is smaller than a photo. Support its development on [Liberapay](https://liberapay.com/regepower/donate) or [GitHub Sponsors](https://github.com/sponsors/regepower).
 
 ## License
 
