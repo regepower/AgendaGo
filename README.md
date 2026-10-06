@@ -2,6 +2,8 @@
 
 A calm home-screen agenda: upcoming events, contact birthdays and tasks from different sources in one list. Android 12–16, no libraries.
 
+![AgendaGo widget: events, a birthday-style all-day entry and an open task (square marker)](docs/widget-preview.jpg)
+
 ## Features
 
 - Event list with calendar colour, date/time column and title (optional location)
