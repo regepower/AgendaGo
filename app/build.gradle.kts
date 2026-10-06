@@ -1,4 +1,6 @@
 import java.security.KeyStore
+import java.time.LocalDate
+import java.time.ZoneId
 
 plugins {
     id("com.android.application")
@@ -20,7 +22,7 @@ android {
         versionCode = maxOf(build, 1)
         versionName = "1.0.$build"
         // Build day for the help dialog (manifest meta-data, no BuildConfig/resource needed).
-        manifestPlaceholders["buildDate"] = java.time.LocalDate.now(java.time.ZoneId.of("Europe/Berlin")).toString()
+        manifestPlaceholders["buildDate"] = LocalDate.now(ZoneId.of("Europe/Berlin")).toString()
     }
 
     // Release key from CI secrets. The alias is optional: without KEY_ALIAS the first alias in
