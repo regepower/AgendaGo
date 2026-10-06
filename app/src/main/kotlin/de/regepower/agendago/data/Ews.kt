@@ -90,6 +90,12 @@ object Ews {
         return "https://$host$fullPath"
     }
 
+    /** Short form for the settings field: just the server, unless the path is non-standard. */
+    fun displayUrl(url: String): String {
+        val noScheme = url.trim().replaceFirst(Regex("^https://", RegexOption.IGNORE_CASE), "")
+        return if (noScheme.endsWith(EWS_PATH, ignoreCase = true)) noScheme.dropLast(EWS_PATH.length) else noScheme
+    }
+
     fun url(context: Context): String = WidgetPrefs.store(context).getString(KEY_URL, "").orEmpty()
 
     fun user(context: Context): String = WidgetPrefs.store(context).getString(KEY_USER, "").orEmpty()

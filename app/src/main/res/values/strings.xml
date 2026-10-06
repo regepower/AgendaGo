@@ -47,7 +47,7 @@
     <string name="src_tasksorg_sub">Google Tasks, Microsoft To Do, CalDAV via the Tasks.org app</string>
     <string name="src_opentasks">OpenTasks</string>
     <string name="src_opentasks_sub">CalDAV tasks synced by DAVx⁵ into OpenTasks</string>
-    <string name="src_gtasks">Google Tasks (direct)</string>
+    <string name="src_gtasks">Google Tasks</string>
     <string name="src_gtasks_sub">With the Google account on this phone, without Tasks.org; fetched every 30 minutes</string>
     <string name="btn_gaccount_choose">Choose Google account</string>
     <string name="gaccount">Account: %1$s</string>
@@ -60,7 +60,6 @@
     <string name="help_gtasks">Reads your Google Tasks directly with the Google account on this phone (read-only). Android asks once for permission. Tapping a task opens it in Google Tasks.</string>
     <string name="src_ews">Exchange (EWS)</string>
     <string name="src_ews_sub">On-premises Exchange server, fetched every 30 minutes</string>
-    <string name="use_source">Use</string>
     <string name="status_not_installed">App not installed</string>
     <string name="status_no_permission">Access not granted yet</string>
     <plurals name="status_lists">
@@ -69,8 +68,8 @@
     </plurals>
     <string name="opentasks_install">OpenTasks stores the CalDAV tasks that DAVx⁵ syncs (Nextcloud, mailbox.org …). Install it, choose OpenTasks as task app in DAVx⁵ and switch this on again.</string>
     <string name="no_opentask_lists">No visible lists found in OpenTasks.</string>
-    <string name="ews_url">Server URL</string>
-    <string name="ews_url_hint">https://mail.example.com/EWS/Exchange.asmx</string>
+    <string name="ews_url">Server</string>
+    <string name="ews_url_hint" translatable="false">mail.example.com</string>
     <string name="ews_user">User</string>
     <string name="ews_user_hint">DOMAIN\\user or user@domain</string>
     <string name="ews_password">Password</string>
@@ -142,7 +141,7 @@
     <string name="donate">Donate</string>
     <string name="donate_text">This app weighs less than a photo. Support its development on Liberapay.</string>
     <string name="donate_url" translatable="false">https://liberapay.com/regepower/donate</string>
-    <string name="help_text"><b>What does the app do?</b>\nA home-screen widget with your next appointments, optionally with contact birthdays and open tasks.\n\n<b>Setup</b>\n1. Allow calendar access.\n2. Choose the calendars to show.\n3. \"Add widget to home screen\" or place it via the launcher widget list.\n\n<b>Settings</b>\nNumber of events and days, location, font, size and colours apply to the widget being edited; the preview shows the result. Tapping an event opens it in the calendar.\n\n<b>Tasks</b>\nSources: the free app Tasks.org (Google Tasks, Microsoft To Do, CalDAV), OpenTasks (CalDAV via DAVx⁵), Google Tasks directly with the Google account on the phone, and on-premises Exchange via EWS. Choose them under \"Configure task sources\".\n\n<b>Calendar colors</b>\nGoogle calendars use the Google palette and send the color to Google. Exchange and local calendars keep it on this device only; \"Keep own colors\" puts it back after a sync resets it.\n\n<b>Save / load</b>\nThe icons at the top save the display settings to a JSON file (e.g. in Drive, for moving to a new phone) and load them again. The last file is remembered; saving again asks whether to overwrite it. Calendars and task lists are chosen again on each phone.</string>
+    <string name="help_text"><b>What does the app do?</b>\nA home-screen widget with your next appointments, optionally with contact birthdays and open tasks.\n\n<b>Setup</b>\n1. Allow calendar access.\n2. Choose the calendars to show.\n3. \"Add widget to home screen\" or place it via the launcher widget list.\n\n<b>Settings</b>\nNumber of events and days, location, font, size and colours apply to the widget being edited; the preview shows the result. Tapping an event opens it in the calendar.\n\n<b>Tasks</b>\nSources: the free app Tasks.org (Google Tasks, Microsoft To Do, CalDAV), OpenTasks (CalDAV via DAVx⁵), Google Tasks directly with the Google account on the phone, and on-premises Exchange via EWS. Choose them under \"Configure task sources\".\n\n<b>Exchange password</b>\nEWS needs the real password at every fetch, so a hash is not enough. It is stored encrypted (AES-GCM) with a key from the Android Keystore that never leaves the phone\'s secure storage. It is never shown, never exported with the settings and only sent to your server over HTTPS.\n\n<b>Calendar colors</b>\nGoogle calendars use the Google palette and send the color to Google. Exchange and local calendars keep it on this device only; \"Keep own colors\" puts it back after a sync resets it.\n\n<b>Save / load</b>\nThe icons at the top save the display settings to a JSON file (e.g. in Drive, for moving to a new phone) and load them again. The last file is remembered; saving again asks whether to overwrite it. Calendars and task lists are chosen again on each phone.</string>
     <string name="btn_calendar_colors">Change calendar colors</string>
     <string name="help_calendar_colors">Changes the color for all calendar apps. Google calendars use the Google palette and sync the color to Google; other calendars keep it on this device only.</string>
     <string name="restore_colors">Keep own colors</string>

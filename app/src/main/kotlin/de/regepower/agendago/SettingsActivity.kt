@@ -30,6 +30,8 @@ import android.text.style.RelativeSizeSpan
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.CompoundButton
@@ -38,10 +40,9 @@ import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.RadioButton
-import android.widget.RadioGroup
 import android.widget.ScrollView
 import android.widget.SeekBar
+import android.widget.Spinner
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
@@ -287,8 +288,20 @@ class SettingsActivity : Activity() {
         root.addView(
             card().apply {
                 addView(header(R.string.section_appearance))
-                addView(TextView(context).apply { text = getString(R.string.label_font) }, fullWidth(top = 4))
-                addView(fontGroup(), fullWidth())
+                addView(
+                    LinearLayout(context).apply {
+                        gravity = Gravity.CENTER_VERTICAL
+                        addView(
+                            TextView(context).apply { text = getString(R.string.label_font) },
+                            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
+                        )
+                        addView(
+                            fontSpinner(),
+                            LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT),
+                        )
+                    },
+                    fullWidth(top = 4),
+                )
                 addView(
                     seekRow(R.string.label_font_size, WidgetPrefs.FONT_SIZE, prefs.fontSizeSp, R.string.unit_sp) {
                         prefs = prefs.copy(fontSizeSp = it)
@@ -352,26 +365,56 @@ class SettingsActivity : Activity() {
         }
     }
 
-    private fun fontGroup() =
-        RadioGroup(this).apply {
-            orientation = RadioGroup.VERTICAL
-            for (font in FontStyle.entries) {
-                addView(
-                    RadioButton(context).apply {
-                        id = View.generateViewId()
-                        text = getString(font.label)
-                        typeface = Typeface.create(font.family, Typeface.NORMAL)
-                        buttonTintList = ColorStateList.valueOf(getColor(R.color.md_primary))
-                        isChecked = font == prefs.font
-                        setOnCheckedChangeListener { _, checked ->
-                            if (checked) {
-                                prefs = prefs.copy(font = font)
-                                renderPreview()
-                            }
-                        }
-                    },
-                )
+    /** Dropdown; every entry is drawn in its own font. */
+    private fun fontSpinner(): Spinner {
+        val fonts = FontStyle.entries
+        val adapter =
+            object : ArrayAdapter<FontStyle>(this, android.R.layout.simple_spinner_item, fonts) {
+                override fun getView(
+                    position: Int,
+                    convertView: View?,
+                    parent: ViewGroup,
+                ): View = fontEntry(super.getView(position, convertView, parent), fonts[position])
+
+                override fun getDropDownView(
+                    position: Int,
+                    convertView: View?,
+                    parent: ViewGroup,
+                ): View = fontEntry(super.getDropDownView(position, convertView, parent), fonts[position])
             }
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        return Spinner(this, Spinner.MODE_DROPDOWN).apply {
+            this.adapter = adapter
+            contentDescription = getString(R.string.label_font)
+            setSelection(fonts.indexOf(prefs.font))
+            onItemSelectedListener =
+                object : AdapterView.OnItemSelectedListener {
+                    override fun onItemSelected(
+                        parent: AdapterView<*>?,
+                        view: View?,
+                        position: Int,
+                        id: Long,
+                    ) {
+                        if (fonts[position] == prefs.font) return
+                        prefs = prefs.copy(font = fonts[position])
+                        renderPreview()
+                    }
+
+                    override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+                }
+        }
+    }
+
+    private fun fontEntry(
+        view: View,
+        font: FontStyle,
+    ): View =
+        (view as TextView).apply {
+            text = getString(font.label)
+            typeface = Typeface.create(font.family, Typeface.NORMAL)
+            textSize = 16f
+            minHeight = px(48)
+            gravity = Gravity.CENTER_VERTICAL
         }
 
     // ---- data ---------------------------------------------------------------------------
@@ -749,10 +792,10 @@ class SettingsActivity : Activity() {
         tasksNoDateSwitch.isEnabled = prefs.tasks
         val names =
             buildList {
-                if (prefs.tasksOrg && Tasks.permitted(this@SettingsActivity)) add(getString(R.string.src_tasksorg))
-                if (prefs.openTasks && OpenTasks.permitted(this@SettingsActivity)) add(getString(R.string.src_opentasks))
                 if (prefs.gtasks) add(getString(R.string.src_gtasks))
                 if (prefs.ews) add(getString(R.string.src_ews))
+                if (prefs.tasksOrg && Tasks.permitted(this@SettingsActivity)) add(getString(R.string.src_tasksorg))
+                if (prefs.openTasks && OpenTasks.permitted(this@SettingsActivity)) add(getString(R.string.src_opentasks))
             }
         sourcesInfo.text =
             if (names.isEmpty()) {
@@ -800,22 +843,19 @@ class SettingsActivity : Activity() {
         // Smooth expand/collapse when a source is switched on or off.
         root.layoutTransition = LayoutTransition().apply { enableTransitionType(LayoutTransition.CHANGING) }
 
-        val tasksOrg = switchRow(R.string.use_source, false) { onTasksOrgToggled(it) }
+        val tasksOrg = sourceSwitch(false) { onTasksOrgToggled(it) }
         val tasksOrgStatus = secondaryText()
         val taskLists = button(R.string.task_lists_all) { pickTaskLists() }
         val tasksOrgDetails = details(tasksOrgStatus to 0, taskLists to 8)
-        root.addView(sourceCard(R.string.src_tasksorg, R.string.src_tasksorg_sub, tasksOrg, tasksOrgDetails), fullWidth(top = 12))
+        val tasksOrgCard = sourceCard(R.string.src_tasksorg, R.string.src_tasksorg_sub, tasksOrg, tasksOrgDetails)
 
-        val openTasks = switchRow(R.string.use_source, false) { onOpenTasksToggled(it) }
+        val openTasks = sourceSwitch(false) { onOpenTasksToggled(it) }
         val openTasksStatus = secondaryText()
         val openTaskLists = button(R.string.task_lists_all) { pickOpenTaskLists() }
         val openTasksDetails = details(openTasksStatus to 0, openTaskLists to 8)
-        root.addView(
-            sourceCard(R.string.src_opentasks, R.string.src_opentasks_sub, openTasks, openTasksDetails),
-            fullWidth(top = 12),
-        )
+        val openTasksCard = sourceCard(R.string.src_opentasks, R.string.src_opentasks_sub, openTasks, openTasksDetails)
 
-        val gtasks = switchRow(R.string.use_source, false) { onGTasksToggled(it) }
+        val gtasks = sourceSwitch(false) { onGTasksToggled(it) }
         val gtasksStatus = secondaryText()
         val gtasksAccount = button(R.string.btn_gaccount_choose) { chooseGoogleAccount() }
         val gtaskLists = button(R.string.task_lists_all) { pickGTaskLists() }
@@ -826,15 +866,13 @@ class SettingsActivity : Activity() {
                 gtaskLists to 8,
                 button(R.string.btn_gtasks_sync) { fetchGTasks() } to 8,
             )
-        root.addView(
+        val gtasksCard =
             sourceCard(R.string.src_gtasks, R.string.src_gtasks_sub, gtasks, gtasksDetails).apply {
                 tooltipText = getString(R.string.help_gtasks)
-            },
-            fullWidth(top = 12),
-        )
+            }
 
         val ews =
-            switchRow(R.string.use_source, prefs.ews) { on ->
+            sourceSwitch(prefs.ews) { on ->
                 if (!settingSwitches) {
                     prefs = prefs.copy(ews = on)
                     refreshSources()
@@ -842,7 +880,11 @@ class SettingsActivity : Activity() {
                 }
             }
         val ewsUrl =
-            field(R.string.ews_url_hint, Ews.url(this), InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI).apply {
+            field(
+                R.string.ews_url_hint,
+                Ews.displayUrl(Ews.url(this)),
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI,
+            ).apply {
                 // Completed when leaving the field, so the user sees what will be used.
                 setOnFocusChangeListener { _, focused -> if (!focused) normalizeUrlField(this) }
             }
@@ -887,7 +929,8 @@ class SettingsActivity : Activity() {
                 listOf(tasksOrg to tasksOrgDetails, openTasks to openTasksDetails, gtasks to gtasksDetails, ews to ewsDetails),
             )
         ewsDetails.addView(button(R.string.btn_ews_test) { testEws(views) }, fullWidth(top = 8))
-        root.addView(ewsCard, fullWidth(top = 12))
+        // Direct accounts first, then the apps that hold the tasks.
+        for (card in listOf(gtasksCard, ewsCard, tasksOrgCard, openTasksCard)) root.addView(card, fullWidth(top = 12))
 
         root.addView(
             button(R.string.btn_done) { showMain() }.also { style(it, R.color.md_primary, R.color.md_on_primary) },
@@ -933,18 +976,35 @@ class SettingsActivity : Activity() {
             )
         }
 
-    /** Title, one-line description and "Use" switch; [details] only while the switch is on. */
+    /** Title with switch, one-line description; [details] only while the switch is on. */
     private fun sourceCard(
         title: Int,
         subtitle: Int,
         switch: CompoundButton,
         details: View,
     ) = card().apply {
-        addView(header(title))
-        addView(secondaryText().apply { setText(subtitle) }, fullWidth(top = 2))
-        addView(switch, fullWidth(top = 4))
-        addView(details, fullWidth())
+        switch.contentDescription = getString(title)
+        addView(
+            LinearLayout(context).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                addView(header(title).apply { textSize = 16f }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                addView(switch, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            },
+            fullWidth(),
+        )
+        addView(secondaryText().apply { setText(subtitle) }, fullWidth())
+        addView(details, fullWidth(top = 4))
     }
+
+    /** Switch without label; it sits right of the source title. */
+    private fun sourceSwitch(
+        checked: Boolean,
+        onChange: (Boolean) -> Unit,
+    ): CompoundButton =
+        Switch(this).apply {
+            isChecked = checked
+            setOnCheckedChangeListener { _, on -> onChange(on) }
+        }
 
     /** Vertical group of views with their top margins in dp. */
     private fun details(vararg views: Pair<View, Int>) =
@@ -992,6 +1052,31 @@ class SettingsActivity : Activity() {
         }
         show(false)
         eye.setOnClickListener { show(eye.tag != true) }
+        // Only typed text can be shown; the saved password (dots hint) is never revealed.
+        eye.visibility = if (edit.text.isEmpty()) View.GONE else View.VISIBLE
+        edit.addTextChangedListener(
+            object : TextWatcher {
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int,
+                ) = Unit
+
+                override fun onTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    before: Int,
+                    count: Int,
+                ) = Unit
+
+                override fun afterTextChanged(s: Editable?) {
+                    val empty = s.isNullOrEmpty()
+                    if (empty && eye.tag == true) show(false)
+                    eye.visibility = if (empty) View.GONE else View.VISIBLE
+                }
+            },
+        )
         return LinearLayout(this).apply {
             gravity = Gravity.CENTER_VERTICAL
             addView(edit, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
@@ -999,8 +1084,9 @@ class SettingsActivity : Activity() {
         }
     }
 
+    /** The field shows only the server; https:// and /EWS/Exchange.asmx are added internally. */
     private fun normalizeUrlField(edit: EditText) {
-        val fixed = Ews.normalizeUrl(edit.text.toString())
+        val fixed = Ews.displayUrl(Ews.normalizeUrl(edit.text.toString()))
         if (fixed != edit.text.toString()) edit.setText(fixed)
     }
 
@@ -1248,10 +1334,7 @@ class SettingsActivity : Activity() {
     /** Stores changed URL/user and a newly typed password; the field is emptied afterwards. */
     private fun saveEwsFields(v: SourceViews) {
         normalizeUrlField(v.ewsUrl)
-        val url =
-            v.ewsUrl.text
-                .toString()
-                .trim()
+        val url = Ews.normalizeUrl(v.ewsUrl.text.toString())
         val user =
             v.ewsUser.text
                 .toString()
@@ -1265,10 +1348,7 @@ class SettingsActivity : Activity() {
 
     private fun testEws(v: SourceViews) {
         normalizeUrlField(v.ewsUrl)
-        val url =
-            v.ewsUrl.text
-                .toString()
-                .trim()
+        val url = Ews.normalizeUrl(v.ewsUrl.text.toString())
         val user =
             v.ewsUser.text
                 .toString()
