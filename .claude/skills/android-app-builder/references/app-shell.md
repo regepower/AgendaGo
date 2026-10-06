@@ -11,7 +11,7 @@ override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) 
     AppShell.onResult(this, requestCode, resultCode, data, prefs.sp, Prefs.DEVICE_KEYS::contains) { /* re-apply */ recreate() }
 }
 ```
-Renamed apps: `AppShell.legacyNames = listOf("OldName")` (SwitchDNS and AgendaGo have it) so config files saved under the old app name still load.
+Renamed apps: `AppShell.legacyNames = listOf("OldName")` (SwitchDNS and AgendaGo have it) so config files saved under the old app name still load. Saving never offers a remembered file whose name starts with a legacy name (e.g. `ZenDay.json`) for overwriting; the picker opens in that folder with `<AppName>.json` instead.
 
 Keep predicates in use: BootDelay boot counter keys, MinCalSync source/target calendar IDs + last result, AgendaGo `*.cals` / `*.tasklists`. Existing app code stays untouched apart from the header row.
 
