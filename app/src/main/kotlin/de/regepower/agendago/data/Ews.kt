@@ -163,6 +163,8 @@ object Ews {
     ): List<Event> {
         val zone = ZoneId.systemDefault()
         val link = webLink(url(context))
+        // Same colour as the Exchange calendar of this mailbox, so tasks match its events.
+        val color = SourceColors.exchange(context, user(context), url(context)) ?: COLOR
         return cached(context).mapNotNull { t ->
             TaskSources.row(
                 stableId = TaskSources.EWS_ID_BASE - (t.id.hashCode().toLong() and 0x7FFF_FFFFL),
@@ -170,7 +172,7 @@ object Ews {
                 due = t.due,
                 allDay = true,
                 day = if (t.due == 0L) null else Instant.ofEpochMilli(t.due).atZone(zone).toLocalDate(),
-                color = COLOR,
+                color = color,
                 link = link,
                 prefs = prefs,
                 lastDay = lastDay,
