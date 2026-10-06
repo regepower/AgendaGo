@@ -76,7 +76,6 @@
     <string name="ews_password_saved" translatable="false">••••••••</string>
     <string name="password_show">Show password</string>
     <string name="password_hide">Hide password</string>
-    <string name="btn_ews_test">Test connection</string>
     <string name="ews_testing">Connecting …</string>
     <string name="ews_error">Error: %1$s</string>
     <plurals name="ews_synced">
