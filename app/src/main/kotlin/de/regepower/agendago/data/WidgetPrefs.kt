@@ -1,8 +1,8 @@
-package com.regepower.zenday.data
+package de.regepower.agendago.data
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.regepower.zenday.R
+import de.regepower.agendago.R
 
 /** System font families offered for the widget; each has its own row layout. */
 enum class FontStyle(

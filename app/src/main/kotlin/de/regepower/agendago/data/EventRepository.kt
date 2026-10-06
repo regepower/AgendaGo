@@ -1,10 +1,10 @@
-package com.regepower.zenday.data
+package de.regepower.agendago.data
 
 import android.content.ContentUris
 import android.content.Context
 import android.provider.CalendarContract.Calendars
 import android.provider.CalendarContract.Instances
-import com.regepower.zenday.R
+import de.regepower.agendago.R
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId

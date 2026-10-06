@@ -33,6 +33,6 @@
 ## Heavier UI libraries — cost
 RecyclerView alone ≈ +105 KB APK (incl. androidx.core/collection). Material Components / Compose were not measured; expect hundreds of KB to MBs. The whole Material You styling above: ≈ +2.2 KB, nav-bar theme ≈ +0.6 KB.
 
-## Home-screen widgets (RemoteViews, ZenDay)
+## Home-screen widgets (RemoteViews, AgendaGo)
 - Tight list rows: `android:includeFontPadding="false"` + `android:fallbackLineSpacing="false"` on every TextView; otherwise font padding (and emoji rows via fallback fonts) add several dp per row and a 0.5dp row padding is invisible.
 - Side margins you can't remove: `AppWidgetHostView` always applies `default_app_widget_padding_*` plus the launcher's cell margin. Transparent widgets should use 0 own padding; only some launchers (Nova, Lawnchair) can switch widget padding off.

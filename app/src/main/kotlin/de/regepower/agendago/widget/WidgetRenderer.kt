@@ -1,4 +1,4 @@
-package com.regepower.zenday.widget
+package de.regepower.agendago.widget
 
 import android.Manifest
 import android.app.PendingIntent
@@ -12,14 +12,14 @@ import android.provider.CalendarContract
 import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
-import com.regepower.zenday.OpenEventActivity
-import com.regepower.zenday.R
-import com.regepower.zenday.SettingsActivity
-import com.regepower.zenday.data.DateLabels
-import com.regepower.zenday.data.Event
-import com.regepower.zenday.data.EventRepository
-import com.regepower.zenday.data.FontStyle
-import com.regepower.zenday.data.WidgetPrefs
+import de.regepower.agendago.OpenEventActivity
+import de.regepower.agendago.R
+import de.regepower.agendago.SettingsActivity
+import de.regepower.agendago.data.DateLabels
+import de.regepower.agendago.data.Event
+import de.regepower.agendago.data.EventRepository
+import de.regepower.agendago.data.FontStyle
+import de.regepower.agendago.data.WidgetPrefs
 
 /** Builds the RemoteViews of one widget. Must not run on the main thread (calendar query). */
 object WidgetRenderer {

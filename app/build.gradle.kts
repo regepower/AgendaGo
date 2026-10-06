@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.regepower.zenday"
+    namespace = "de.regepower.agendago"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.regepower.zenday"
+        applicationId = "de.regepower.agendago"
         // 31: RemoteViews.setViewLayoutWidth / setColor / RemoteCollectionItems and dynamic colors.
         minSdk = 31
         targetSdk = 36

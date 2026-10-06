@@ -1,4 +1,4 @@
-package com.regepower.zenday
+package de.regepower.agendago
 
 import android.content.SharedPreferences
 import org.json.JSONArray

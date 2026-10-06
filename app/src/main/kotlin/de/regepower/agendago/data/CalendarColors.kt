@@ -1,4 +1,4 @@
-package com.regepower.zenday.data
+package de.regepower.agendago.data
 
 import android.Manifest
 import android.content.ContentUris

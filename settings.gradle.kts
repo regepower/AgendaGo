@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "ZenDay"
+rootProject.name = "AgendaGo"
 include(":app")

@@ -1,4 +1,4 @@
-package com.regepower.zenday
+package de.regepower.agendago
 
 import android.app.Activity
 import android.content.ActivityNotFoundException

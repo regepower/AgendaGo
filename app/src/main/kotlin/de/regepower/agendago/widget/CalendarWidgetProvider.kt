@@ -1,4 +1,4 @@
-package com.regepower.zenday.widget
+package de.regepower.agendago.widget
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -13,10 +13,10 @@ import android.content.Context
 import android.content.Intent
 import android.provider.CalendarContract
 import android.provider.ContactsContract
-import com.regepower.zenday.data.Birthdays
-import com.regepower.zenday.data.CalendarColors
-import com.regepower.zenday.data.Tasks
-import com.regepower.zenday.data.WidgetPrefs
+import de.regepower.agendago.data.Birthdays
+import de.regepower.agendago.data.CalendarColors
+import de.regepower.agendago.data.Tasks
+import de.regepower.agendago.data.WidgetPrefs
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -68,7 +68,7 @@ class CalendarWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
-        const val ACTION_REFRESH = "com.regepower.zenday.REFRESH"
+        const val ACTION_REFRESH = "de.regepower.agendago.REFRESH"
     }
 }
 

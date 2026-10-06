@@ -1,11 +1,11 @@
-package com.regepower.zenday.data
+package de.regepower.agendago.data
 
 import android.content.Context
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.text.format.DateFormat
 import android.util.TypedValue
-import com.regepower.zenday.R
+import de.regepower.agendago.R
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

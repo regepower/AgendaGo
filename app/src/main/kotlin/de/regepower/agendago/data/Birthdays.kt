@@ -1,11 +1,11 @@
-package com.regepower.zenday.data
+package de.regepower.agendago.data
 
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.provider.ContactsContract.Contacts
 import android.provider.ContactsContract.Data
-import com.regepower.zenday.R
+import de.regepower.agendago.R
 import java.time.LocalDate
 import java.time.ZoneOffset
 import android.provider.ContactsContract.CommonDataKinds.Event as ContactEvent

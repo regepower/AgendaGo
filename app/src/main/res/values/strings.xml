@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">ZenDay</string>
+    <string name="app_name" translatable="false">AgendaGo</string>
     <string name="widget_label">Upcoming events</string>
     <string name="widget_description">Your next calendar events as a compact list.</string>
 
@@ -88,7 +88,7 @@
     <string name="cfg_load">Load configuration</string>
     <string name="cfg_saved">Configuration saved</string>
     <string name="cfg_loaded">Configuration loaded</string>
-    <string name="cfg_invalid">Not a valid ZenDay configuration</string>
+    <string name="cfg_invalid">Not a valid AgendaGo configuration</string>
     <string name="cfg_error">File could not be written</string>
     <string name="donate">Donate</string>
     <string name="donate_text">This app weighs less than a photo. Support its development on Liberapay.</string>

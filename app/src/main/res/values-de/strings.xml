@@ -76,7 +76,7 @@
     <string name="cfg_load">Konfiguration laden</string>
     <string name="cfg_saved">Konfiguration gespeichert</string>
     <string name="cfg_loaded">Konfiguration geladen</string>
-    <string name="cfg_invalid">Keine gültige ZenDay-Konfiguration</string>
+    <string name="cfg_invalid">Keine gültige AgendaGo-Konfiguration</string>
     <string name="cfg_error">Datei konnte nicht geschrieben werden</string>
     <string name="donate">Spenden</string>
     <string name="donate_text">Diese App wiegt weniger als ein Foto. Unterstütze die Entwicklung auf Liberapay.</string>
