@@ -80,5 +80,10 @@
             android:name=".widget.NetSyncJob"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <!-- Build day (ISO date) from build.gradle.kts, shown in the help dialog. -->
+        <meta-data
+            android:name="build_date"
+            android:value="${buildDate}" />
     </application>
 </manifest>

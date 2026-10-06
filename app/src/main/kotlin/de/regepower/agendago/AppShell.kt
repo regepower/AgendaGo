@@ -25,6 +25,10 @@ import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import java.io.IOException
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.time.format.FormatStyle
 
 /**
  * Shared top row of all our apps: large bold app name, then save config, load config and help.
@@ -128,6 +132,7 @@ object AppShell {
                         R.string.help_footer,
                         a.getString(R.string.app_name),
                         version(a),
+                        buildDate(a),
                         a.getString(R.string.donate_text),
                         a.getString(R.string.foss_text, a.getString(R.string.source_url)),
                     )
@@ -172,6 +177,25 @@ object AppShell {
                 }
             info.versionName.orEmpty()
         } catch (e: PackageManager.NameNotFoundException) {
+            ""
+        }
+
+    /** Build day from the manifest meta-data "build_date", in the device's date format; "" if absent. */
+    private fun buildDate(a: Activity): String =
+        try {
+            val pm = a.packageManager
+            val info =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    pm.getApplicationInfo(a.packageName, PackageManager.ApplicationInfoFlags.of(PackageManager.GET_META_DATA.toLong()))
+                } else {
+                    @Suppress("DEPRECATION")
+                    pm.getApplicationInfo(a.packageName, PackageManager.GET_META_DATA)
+                }
+            val iso = info.metaData?.getString("build_date").orEmpty()
+            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).format(LocalDate.parse(iso))
+        } catch (e: PackageManager.NameNotFoundException) {
+            ""
+        } catch (e: DateTimeParseException) {
             ""
         }
 

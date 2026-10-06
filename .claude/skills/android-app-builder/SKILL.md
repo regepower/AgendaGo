@@ -22,7 +22,7 @@ The sandbox has no Android SDK, so you cannot compile locally. Write code → pu
 7. **Deliver** the `BootDelay-release`-style artifact (Actions run → Artifacts). Tell the user to install the *release* APK: the debug APK is ~30x bigger and users mistake it for the app size.
 
 ## Versioning
-`versionName = "1.0.$GITHUB_RUN_NUMBER"`, `versionCode = run number` (read via `System.getenv` in `defaultConfig`, fallback 0/1 for local builds): every CI build is visibly numbered (#57 → 1.0.57) and installs as an update; bump major/minor by hand only for bigger changes. The help dialog shows the version.
+`versionName = "1.0.$GITHUB_RUN_NUMBER"`, `versionCode = run number` (read via `System.getenv` in `defaultConfig`, fallback 0/1 for local builds): every CI build is visibly numbered (#57 → 1.0.57) and installs as an update; bump major/minor by hand only for bigger changes. The help dialog shows version and build day (`manifestPlaceholders["buildDate"]` → `<meta-data android:name="build_date">`, read with `GET_META_DATA`, formatted with the device locale; no BuildConfig, no generated string that would trip MissingTranslation).
 
 ## Compiler / build options that matter
 
