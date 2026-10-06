@@ -4,3 +4,6 @@ local.properties
 *.jks
 *.keystore
 .idea/
+
+# Claude skills live in the private repo regepower/android-skills
+.claude/
