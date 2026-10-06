@@ -42,6 +42,9 @@ data class WidgetPrefs(
     /** Empty = all OpenTasks lists. */
     val openTaskListIds: Set<Long> = emptySet(),
     val ews: Boolean = false,
+    val gtasks: Boolean = false,
+    /** Empty = all Google Tasks lists (keys from [GTasks.listKey]). */
+    val gtaskListIds: Set<Long> = emptySet(),
 ) {
     companion object {
         val EVENTS = 1..50
@@ -56,7 +59,8 @@ data class WidgetPrefs(
         fun store(context: Context): SharedPreferences = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
         /** Calendar and task-list IDs differ per phone: not exported, not overwritten on import. */
-        fun isDeviceKey(key: String) = key.endsWith(".cals") || key.endsWith(".tasklists") || key.endsWith(".otlists")
+        fun isDeviceKey(key: String) =
+            key.endsWith(".cals") || key.endsWith(".tasklists") || key.endsWith(".otlists") || key.endsWith(".gtlists")
 
         private fun prefix(widgetId: Int?) = if (widgetId == null) DEFAULT else "w$widgetId."
 
@@ -92,6 +96,10 @@ data class WidgetPrefs(
                     sp.getStringSet(p + "otlists", null)?.mapNotNull { it.toLongOrNull() }?.toSet()
                         ?: d.openTaskListIds,
                 ews = sp.getBoolean(p + "src_ews", d.ews),
+                gtasks = sp.getBoolean(p + "src_gtasks", d.gtasks),
+                gtaskListIds =
+                    sp.getStringSet(p + "gtlists", null)?.mapNotNull { it.toLongOrNull() }?.toSet()
+                        ?: d.gtaskListIds,
             )
         }
 
@@ -121,6 +129,8 @@ data class WidgetPrefs(
                     .putBoolean(p + "src_opentasks", prefs.openTasks)
                     .putStringSet(p + "otlists", prefs.openTaskListIds.map { it.toString() }.toSet())
                     .putBoolean(p + "src_ews", prefs.ews)
+                    .putBoolean(p + "src_gtasks", prefs.gtasks)
+                    .putStringSet(p + "gtlists", prefs.gtaskListIds.map { it.toString() }.toSet())
             }
             editor.apply()
         }

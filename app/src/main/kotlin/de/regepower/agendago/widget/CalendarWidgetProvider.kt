@@ -16,6 +16,7 @@ import android.provider.ContactsContract
 import de.regepower.agendago.data.Birthdays
 import de.regepower.agendago.data.CalendarColors
 import de.regepower.agendago.data.Ews
+import de.regepower.agendago.data.GTasks
 import de.regepower.agendago.data.OpenTasks
 import de.regepower.agendago.data.Tasks
 import de.regepower.agendago.data.WidgetPrefs
@@ -83,10 +84,10 @@ object WidgetUpdater {
         val ids = manager.getAppWidgetIds(ComponentName(context, CalendarWidgetProvider::class.java))
         if (ids.isEmpty()) {
             RefreshScheduler.cancel(context)
-            EwsSyncJob.schedule(context, false)
+            NetSync.schedule(context)
             return
         }
-        EwsSyncJob.schedule(context, ids.any { WidgetPrefs.load(context, it).let { p -> p.tasks && p.ews } })
+        NetSync.schedule(context)
         val now = System.currentTimeMillis()
         val zone = ZoneId.systemDefault()
         // "Today"/"Tmrw" labels change at midnight; finished events must disappear at their end.
@@ -149,7 +150,7 @@ object RefreshScheduler {
     fun cancel(context: Context) {
         context.getSystemService(AlarmManager::class.java)?.cancel(alarmIntent(context))
         context.getSystemService(JobScheduler::class.java)?.cancel(JOB_ID)
-        EwsSyncJob.schedule(context, false)
+        NetSync.schedule(context)
     }
 
     private fun alarmIntent(context: Context): PendingIntent =
@@ -186,16 +187,15 @@ class CalendarChangeJob : JobService() {
 }
 
 /**
- * Fetches Exchange tasks every 30 minutes while a network is available, then redraws the
- * widgets. Exchange has no push to a third-party app, so this is the only polling in the app,
- * and only while an EWS source is switched on.
+ * Fetches network task sources (Exchange via EWS, Google Tasks) every 30 minutes while a network
+ * is available, then redraws the widgets. Neither pushes to a third-party app, so this is the
+ * only polling in the app, and only while such a source is switched on.
  */
-class EwsSyncJob : JobService() {
+class NetSyncJob : JobService() {
     override fun onStartJob(params: JobParameters): Boolean {
         Thread {
             try {
-                Ews.sync(applicationContext)
-                WidgetUpdater.updateAll(applicationContext)
+                NetSync.syncNow(applicationContext)
             } finally {
                 jobFinished(params, false)
             }
@@ -204,30 +204,53 @@ class EwsSyncJob : JobService() {
     }
 
     override fun onStopJob(params: JobParameters): Boolean = true
+}
 
-    companion object {
-        private const val JOB_ID = 2
-        private const val PERIOD_MS = 30L * 60 * 1000
+object NetSync {
+    private const val JOB_ID = 2
+    private const val PERIOD_MS = 30L * 60 * 1000
 
-        /** Schedules (once) or cancels the periodic fetch. */
-        fun schedule(
-            context: Context,
-            on: Boolean,
-        ) {
-            val jobs = context.getSystemService(JobScheduler::class.java) ?: return
-            if (!on || !Ews.configured(context)) {
-                if (jobs.getPendingJob(JOB_ID) != null) jobs.cancel(JOB_ID)
-                return
-            }
-            if (jobs.getPendingJob(JOB_ID) != null) return
-            jobs.schedule(
-                JobInfo
-                    .Builder(JOB_ID, ComponentName(context, EwsSyncJob::class.java))
-                    .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-                    .setPeriodic(PERIOD_MS)
-                    .setPersisted(true)
-                    .build(),
-            )
+    /** Which network sources any placed widget uses (and that are set up). */
+    private fun needed(context: Context): Pair<Boolean, Boolean> {
+        val manager = AppWidgetManager.getInstance(context)
+        val all =
+            manager
+                .getAppWidgetIds(ComponentName(context, CalendarWidgetProvider::class.java))
+                .map { WidgetPrefs.load(context, it) }
+                .filter { it.tasks }
+        val ews = all.any { it.ews } && Ews.configured(context)
+        val gtasks = all.any { it.gtasks } && GTasks.configured(context)
+        return ews to gtasks
+    }
+
+    /** Fetches the used sources and redraws. Network: call from a background thread. */
+    fun syncNow(
+        context: Context,
+        force: Boolean = false,
+    ) {
+        val (ews, gtasks) = needed(context)
+        if ((ews || force) && Ews.configured(context)) Ews.sync(context)
+        if ((gtasks || force) && GTasks.configured(context)) GTasks.sync(context)
+        WidgetUpdater.updateAll(context)
+    }
+
+    /** Schedules (once) or cancels the periodic fetch, depending on the widgets' sources. */
+    fun schedule(context: Context) {
+        val jobs = context.getSystemService(JobScheduler::class.java) ?: return
+        val (ews, gtasks) = needed(context)
+        if (!ews && !gtasks) {
+            if (jobs.getPendingJob(JOB_ID) != null) jobs.cancel(JOB_ID)
+            return
         }
+        val pending = jobs.getPendingJob(JOB_ID)
+        if (pending != null && pending.service.className == NetSyncJob::class.java.name) return
+        jobs.schedule(
+            JobInfo
+                .Builder(JOB_ID, ComponentName(context, NetSyncJob::class.java))
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                .setPeriodic(PERIOD_MS)
+                .setPersisted(true)
+                .build(),
+        )
     }
 }

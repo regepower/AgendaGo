@@ -5,12 +5,13 @@ import android.content.pm.PackageManager
 import java.time.LocalDate
 import java.time.ZoneOffset
 
-/** Combines all enabled task sources: Tasks.org, OpenTasks and Exchange (EWS cache). */
+/** Combines all enabled task sources: Tasks.org, OpenTasks, Exchange and Google Tasks (caches). */
 object TaskSources {
     /** Stable-id ranges per source, apart from calendar instances and birthdays. */
     const val TASKS_ORG_ID_BASE = -1_000_000_000_000L
     const val OPENTASKS_ID_BASE = -2_000_000_000_000L
     const val EWS_ID_BASE = -3_000_000_000_000L
+    const val GTASKS_ID_BASE = -4_000_000_000_000L
     private const val DAY_MS = 24L * 60 * 60 * 1000
 
     fun upcoming(
@@ -22,6 +23,7 @@ object TaskSources {
         if (prefs.tasksOrg) result += Tasks.upcoming(context, prefs, lastDay)
         if (prefs.openTasks) result += OpenTasks.upcoming(context, prefs, lastDay)
         if (prefs.ews) result += Ews.upcoming(context, prefs, lastDay)
+        if (prefs.gtasks) result += GTasks.upcoming(context, prefs, lastDay)
         return result
     }
 
