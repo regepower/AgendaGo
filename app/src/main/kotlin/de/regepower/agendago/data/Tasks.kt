@@ -1,4 +1,4 @@
-package com.regepower.zenday.data
+package de.regepower.agendago.data
 
 import android.content.Context
 import android.content.pm.PackageManager

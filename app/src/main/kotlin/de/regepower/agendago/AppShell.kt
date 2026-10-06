@@ -1,4 +1,4 @@
-package com.regepower.zenday
+package de.regepower.agendago
 
 import android.app.Activity
 import android.app.AlertDialog
@@ -35,6 +35,9 @@ object AppShell {
     const val REQ_LOAD = 7302
     private const val SHELL_PREFS = "appshell"
     private const val KEY_FILE = "file"
+
+    /** Former app names whose config files still load after a rename. */
+    var legacyNames: List<String> = emptyList()
 
     /** [sp]/[keep] are needed here because overwriting the remembered file needs no picker. */
     fun header(
@@ -137,7 +140,7 @@ object AppShell {
     private fun fileName(a: Activity) = "${a.getString(R.string.app_name)}.json"
 
     /**
-     * The picker can only create files ("ZenDay(1).json" if the name exists), never overwrite.
+     * The picker can only create files ("AgendaGo(1).json" if the name exists), never overwrite.
      * So the last saved or loaded file is remembered and overwritten after asking; works for
      * local folders and cloud providers (Drive etc.) alike.
      */
@@ -267,7 +270,8 @@ object AppShell {
                 Log.w("AppShell", "load config", e)
                 null
             }
-        if (json == null || !ConfigIO.fromJson(sp, json, a.getString(R.string.app_name), keep)) {
+        val names = listOf(a.getString(R.string.app_name)) + legacyNames
+        if (json == null || names.none { ConfigIO.fromJson(sp, json, it, keep) }) {
             toast(a, R.string.cfg_invalid)
             return
         }

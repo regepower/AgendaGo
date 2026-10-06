@@ -1,4 +1,4 @@
-package com.regepower.zenday
+package de.regepower.agendago
 
 import android.Manifest
 import android.app.Activity
@@ -39,20 +39,20 @@ import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
-import com.regepower.zenday.data.Birthdays
-import com.regepower.zenday.data.CalendarColors
-import com.regepower.zenday.data.CalendarInfo
-import com.regepower.zenday.data.DateLabels
-import com.regepower.zenday.data.Event
-import com.regepower.zenday.data.EventRepository
-import com.regepower.zenday.data.FontStyle
-import com.regepower.zenday.data.PaletteColor
-import com.regepower.zenday.data.TaskList
-import com.regepower.zenday.data.Tasks
-import com.regepower.zenday.data.WidgetPrefs
-import com.regepower.zenday.widget.CalendarWidgetProvider
-import com.regepower.zenday.widget.WidgetRenderer
-import com.regepower.zenday.widget.WidgetUpdater
+import de.regepower.agendago.data.Birthdays
+import de.regepower.agendago.data.CalendarColors
+import de.regepower.agendago.data.CalendarInfo
+import de.regepower.agendago.data.DateLabels
+import de.regepower.agendago.data.Event
+import de.regepower.agendago.data.EventRepository
+import de.regepower.agendago.data.FontStyle
+import de.regepower.agendago.data.PaletteColor
+import de.regepower.agendago.data.TaskList
+import de.regepower.agendago.data.Tasks
+import de.regepower.agendago.data.WidgetPrefs
+import de.regepower.agendago.widget.CalendarWidgetProvider
+import de.regepower.agendago.widget.WidgetRenderer
+import de.regepower.agendago.widget.WidgetUpdater
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -168,6 +168,7 @@ class SettingsActivity : Activity() {
                 orientation = LinearLayout.VERTICAL
                 setPadding(px(16), px(12), px(16), px(16))
             }
+        AppShell.legacyNames = listOf("ZenDay")
         root.addView(AppShell.header(this, WidgetPrefs.store(this), WidgetPrefs::isDeviceKey))
 
         permissionCard =
