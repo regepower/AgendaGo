@@ -79,7 +79,7 @@
         <item quantity="one">Zuletzt abgerufen %1$s · %2$d offen</item>
         <item quantity="other">Zuletzt abgerufen %1$s · %2$d offen</item>
     </plurals>
-    <string name="ews_not_synced">Noch nicht verbunden: Daten eingeben und Verbindung testen.</string>
+    <string name="ews_not_synced">Noch nicht abgerufen: Daten eingeben und „Jetzt abrufen“ tippen.</string>
     <string name="ews_missing">URL, Benutzer und Passwort eingeben.</string>
     <string name="help_ews">Liest den Aufgabenordner deines Postfachs über Exchange Web Services (Anmeldung Basic oder NTLM). Das Passwort liegt verschlüsselt auf diesem Handy und wird nie exportiert. Antippen einer Exchange-Aufgabe öffnet Outlook im Web.</string>
     <string name="btn_install">Installieren</string>
