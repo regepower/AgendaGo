@@ -63,6 +63,8 @@
     <string name="ews_user_hint">DOMÄNE\\benutzer oder benutzer@domäne</string>
     <string name="ews_password">Passwort</string>
     <string name="ews_password_saved">Gespeichert – leer lassen, um es zu behalten</string>
+    <string name="password_show">Passwort anzeigen</string>
+    <string name="password_hide">Passwort verbergen</string>
     <string name="btn_ews_test">Verbindung testen</string>
     <string name="ews_testing">Verbinde …</string>
     <string name="ews_error">Fehler: %1$s</string>
@@ -71,7 +73,6 @@
         <item quantity="other">Zuletzt abgerufen %1$s · %2$d offen</item>
     </plurals>
     <string name="ews_not_synced">Noch nicht verbunden: Daten eingeben und Verbindung testen.</string>
-    <string name="ews_https">Die URL muss mit https:// beginnen</string>
     <string name="ews_missing">URL, Benutzer und Passwort eingeben.</string>
     <string name="help_ews">Liest den Aufgabenordner deines Postfachs über Exchange Web Services (Anmeldung Basic oder NTLM). Das Passwort liegt verschlüsselt auf diesem Handy und wird nie exportiert. Antippen einer Exchange-Aufgabe öffnet Outlook im Web.</string>
     <string name="btn_install">Installieren</string>

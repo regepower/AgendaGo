@@ -74,6 +74,22 @@ object Ews {
         val error: String?,
     )
 
+    /**
+     * Makes typed server addresses usable: always https (EWS sends the password, plain http is
+     * replaced), and a bare host or "/EWS" gets the standard endpoint path.
+     * "mail.example.com" → "https://mail.example.com/EWS/Exchange.asmx".
+     */
+    fun normalizeUrl(raw: String): String {
+        val trimmed = raw.trim()
+        if (trimmed.isEmpty()) return ""
+        val noScheme = trimmed.replaceFirst(Regex("^[a-zA-Z][a-zA-Z0-9+.-]*://"), "")
+        val slash = noScheme.indexOf('/')
+        val host = if (slash < 0) noScheme else noScheme.substring(0, slash)
+        val path = if (slash < 0) "" else noScheme.substring(slash)
+        val fullPath = if (path.trimEnd('/').let { it.isEmpty() || it.equals("/EWS", ignoreCase = true) }) EWS_PATH else path
+        return "https://$host$fullPath"
+    }
+
     fun url(context: Context): String = WidgetPrefs.store(context).getString(KEY_URL, "").orEmpty()
 
     fun user(context: Context): String = WidgetPrefs.store(context).getString(KEY_USER, "").orEmpty()
@@ -398,6 +414,7 @@ object Ews {
             null
         }
 
+    private const val EWS_PATH = "/EWS/Exchange.asmx"
     private const val SCHEME_BASIC = "basic"
     private const val SCHEME_NTLM = "ntlm"
     private const val NTLM_PREFIX = 5
