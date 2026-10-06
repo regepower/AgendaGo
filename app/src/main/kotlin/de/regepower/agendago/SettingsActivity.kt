@@ -22,6 +22,7 @@ import android.text.Spanned
 import android.text.TextUtils
 import android.text.TextWatcher
 import android.text.format.DateUtils
+import android.text.method.PasswordTransformationMethod
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
 import android.view.Gravity
@@ -801,7 +802,10 @@ class SettingsActivity : Activity() {
                 }
             }
         val ewsUrl =
-            field(R.string.ews_url_hint, Ews.url(this), InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI)
+            field(R.string.ews_url_hint, Ews.url(this), InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI).apply {
+                // Completed when leaving the field, so the user sees what will be used.
+                setOnFocusChangeListener { _, focused -> if (!focused) normalizeUrlField(this) }
+            }
         val ewsUser = field(R.string.ews_user_hint, Ews.user(this), InputType.TYPE_CLASS_TEXT)
         val ewsPassword =
             field(
@@ -819,7 +823,7 @@ class SettingsActivity : Activity() {
                     R.string.ews_password to ewsPassword,
                 )) {
                     addView(secondaryText().apply { setText(label) }, fullWidth(top = 8))
-                    addView(edit, fullWidth())
+                    addView(if (edit === ewsPassword) passwordRow(edit) else edit, fullWidth())
                 }
             }
         val views =
@@ -912,6 +916,40 @@ class SettingsActivity : Activity() {
         setText(value)
         inputType = type
         isSingleLine = true
+    }
+
+    /** Password field with an eye button that shows/hides the typed text. */
+    private fun passwordRow(edit: EditText): View {
+        val tv = android.util.TypedValue()
+        theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, tv, true)
+        val eye =
+            ImageButton(this).apply {
+                imageTintList = ColorStateList.valueOf(getColor(R.color.md_on_surface_variant))
+                setBackgroundResource(tv.resourceId)
+            }
+
+        fun show(visible: Boolean) {
+            val cursor = edit.selectionEnd
+            // TransformationMethod keeps keyboard and font; only the masking changes.
+            edit.transformationMethod = if (visible) null else PasswordTransformationMethod.getInstance()
+            if (cursor >= 0) edit.setSelection(cursor)
+            eye.setImageResource(if (visible) R.drawable.ic_visibility_off else R.drawable.ic_visibility)
+            eye.contentDescription = getString(if (visible) R.string.password_hide else R.string.password_show)
+            eye.tooltipText = eye.contentDescription
+            eye.tag = visible
+        }
+        show(false)
+        eye.setOnClickListener { show(eye.tag != true) }
+        return LinearLayout(this).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            addView(edit, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            addView(eye, LinearLayout.LayoutParams(px(44), px(44)))
+        }
+    }
+
+    private fun normalizeUrlField(edit: EditText) {
+        val fixed = Ews.normalizeUrl(edit.text.toString())
+        if (fixed != edit.text.toString()) edit.setText(fixed)
     }
 
     /** Re-reads install/permission state, lists and EWS status into the sources screen. */
@@ -1068,6 +1106,7 @@ class SettingsActivity : Activity() {
 
     /** Stores changed URL/user and a newly typed password; the field is emptied afterwards. */
     private fun saveEwsFields(v: SourceViews) {
+        normalizeUrlField(v.ewsUrl)
         val url =
             v.ewsUrl.text
                 .toString()
@@ -1084,6 +1123,7 @@ class SettingsActivity : Activity() {
     }
 
     private fun testEws(v: SourceViews) {
+        normalizeUrlField(v.ewsUrl)
         val url =
             v.ewsUrl.text
                 .toString()
@@ -1095,10 +1135,6 @@ class SettingsActivity : Activity() {
         val password = v.ewsPassword.text.toString()
         if (url.isEmpty() || user.isEmpty() || (password.isEmpty() && !Ews.hasPassword(this))) {
             v.ewsStatus.text = getString(R.string.ews_missing)
-            return
-        }
-        if (!url.startsWith("https://", ignoreCase = true)) {
-            v.ewsStatus.text = getString(R.string.ews_https)
             return
         }
         saveEwsFields(v)

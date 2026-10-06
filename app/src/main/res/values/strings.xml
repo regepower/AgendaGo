@@ -64,6 +64,8 @@
     <string name="ews_user_hint">DOMAIN\\user or user@domain</string>
     <string name="ews_password">Password</string>
     <string name="ews_password_saved">Saved – leave empty to keep it</string>
+    <string name="password_show">Show password</string>
+    <string name="password_hide">Hide password</string>
     <string name="btn_ews_test">Test connection</string>
     <string name="ews_testing">Connecting …</string>
     <string name="ews_error">Error: %1$s</string>
@@ -72,7 +74,6 @@
         <item quantity="other">Last sync %1$s · %2$d open</item>
     </plurals>
     <string name="ews_not_synced">Not connected yet: enter the data and test the connection.</string>
-    <string name="ews_https">The URL must start with https://</string>
     <string name="ews_missing">Enter URL, user and password.</string>
     <string name="help_ews">Reads the Tasks folder of your mailbox via Exchange Web Services (Basic or NTLM login). The password is stored encrypted on this phone and never exported. Tapping an Exchange task opens Outlook on the web.</string>
     <string name="btn_install">Install</string>
