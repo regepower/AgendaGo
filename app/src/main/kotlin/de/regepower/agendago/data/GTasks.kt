@@ -287,8 +287,10 @@ object GTasks {
         context: Context,
         prefs: WidgetPrefs,
         lastDay: LocalDate,
-    ): List<Event> =
-        cached(context).mapNotNull { t ->
+    ): List<Event> {
+        // Same colour as the primary Google calendar of this account, so tasks match its events.
+        val color = SourceColors.google(context, account(context)) ?: COLOR
+        return cached(context).mapNotNull { t ->
             if (prefs.gtaskListIds.isNotEmpty() && t.listKey !in prefs.gtaskListIds) return@mapNotNull null
             TaskSources.row(
                 stableId = TaskSources.GTASKS_ID_BASE - (t.id.hashCode().toLong() and 0x7FFF_FFFFL),
@@ -296,12 +298,13 @@ object GTasks {
                 due = 0L,
                 allDay = true,
                 day = t.due,
-                color = COLOR,
+                color = color,
                 link = t.link,
                 prefs = prefs,
                 lastDay = lastDay,
             )
         }
+    }
 
     private fun state(context: Context): SharedPreferences = context.getSharedPreferences(STATE, Context.MODE_PRIVATE)
 }
