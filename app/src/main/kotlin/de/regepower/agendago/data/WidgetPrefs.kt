@@ -23,13 +23,13 @@ enum class FontStyle(
 data class WidgetPrefs(
     /** Empty = all visible calendars. */
     val calendarIds: Set<Long> = emptySet(),
-    val maxEvents: Int = 15,
-    val maxDays: Int = 14,
+    val maxEvents: Int = 7,
+    val maxDays: Int = 15,
     val showLocation: Boolean = true,
     val transparent: Boolean = false,
     val invert: Boolean = false,
     val font: FontStyle = FontStyle.SANS,
-    val fontSizeSp: Int = 14,
+    val fontSizeSp: Int = 11,
     val dateWidthDp: Int = 52,
     val birthdays: Boolean = false,
     val tasks: Boolean = false,
