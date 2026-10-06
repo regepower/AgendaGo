@@ -63,7 +63,7 @@
     <string name="ews_user">User</string>
     <string name="ews_user_hint">DOMAIN\\user or user@domain</string>
     <string name="ews_password">Password</string>
-    <string name="ews_password_saved">Saved – leave empty to keep it</string>
+    <string name="ews_password_saved" translatable="false">••••••••</string>
     <string name="password_show">Show password</string>
     <string name="password_hide">Hide password</string>
     <string name="btn_ews_test">Test connection</string>

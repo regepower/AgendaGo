@@ -62,7 +62,6 @@
     <string name="ews_user">Benutzer</string>
     <string name="ews_user_hint">DOMÄNE\\benutzer oder benutzer@domäne</string>
     <string name="ews_password">Passwort</string>
-    <string name="ews_password_saved">Gespeichert – leer lassen, um es zu behalten</string>
     <string name="password_show">Passwort anzeigen</string>
     <string name="password_hide">Passwort verbergen</string>
     <string name="btn_ews_test">Verbindung testen</string>
