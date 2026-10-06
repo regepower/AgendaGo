@@ -2,7 +2,7 @@
 
 User decision (MinDNSChanger, Oct 2026): every app gets the same top row; rolled out to BootDelay, MinCalSync, AgendaGo (formerly ZenDay/MinCalWidget), SwitchDNS (formerly MinDNSChanger).
 
-**Drop-in:** copy `AppShell.kt` + `ConfigIO.kt` from `regepower/AgendaGo` (reference version; change only the package line), the vectors `ic_save/ic_load/ic_help`, the strings `help, help_ok, help_text, help_open, help_closed, help_expanded, help_collapsed, foss_text, source_url, donate, donate_text, donate_url, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite ("%1$s überschreiben?"), cfg_overwrite_ok ("Überschreiben"), cfg_other_place ("Anderer Ort")` (EN + DE), then:
+**Drop-in:** copy `AppShell.kt` + `ConfigIO.kt` from `regepower/AgendaGo` (reference version; change only the package line), the vectors `ic_save/ic_load/ic_help`, the strings `help, help_ok, help_text, help_open, help_closed, help_expanded, help_collapsed, foss_text, source_url, help_footer, donate, donate_text, donate_url, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite ("%1$s überschreiben?"), cfg_overwrite_ok ("Überschreiben"), cfg_other_place ("Anderer Ort")` (EN + DE), then:
 ```kotlin
 root.addView(AppShell.header(this, prefs.sp, Prefs.DEVICE_KEYS::contains))   // first row; sp/keep needed for overwrite-without-picker
 override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

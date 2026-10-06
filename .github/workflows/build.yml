@@ -96,7 +96,7 @@ jobs:
       - name: "Cert SHA-1: ${{ env.CERT_SHA1 }}"
         run: echo "${{ env.CERT_SHA1 }}"
 
-      - name: "Release APK: ${{ env.APK_BYTES }} bytes (${{ env.SIGNING }})"
+      - name: "Release APK 1.0.${{ github.run_number }}: ${{ env.APK_BYTES }} bytes (${{ env.SIGNING }})"
         run: echo "release apk ${{ env.APK_BYTES }} bytes, ${{ env.SIGNING }}"
 
       - uses: actions/upload-artifact@v6
