@@ -40,3 +40,6 @@ To compare a change against a baseline in the same pipeline, push the *instrumen
 - ktlint 1.5.0 from GitHub releases with `.editorconfig` `ktlint_code_style = android_studio`; locally `ktlint -F` before pushing.
 - Local compile check: kotlinc from GitHub releases + `android.jar` from `raw.githubusercontent.com/Reginer/aosp-android-jar/main/android-36/android.jar`, generated `R` stub, Java stubs for AndroidX classes (Google Maven is blocked), `-Werror`.
 
+
+## Artifact storage
+Upload only the release APK (`retention-days: 30`) and the lint report (`retention-days: 7`); never the debug APK (≈4 MB per run, BootDelay had collected 53 MB of artifacts). The repositories themselves stay small (≈130–230 KB incl. history); old artifacts and runs can only be deleted by the user in the GitHub UI (Actions → run → Artifacts / ⋯ → Delete), the proxy blocks those API calls.

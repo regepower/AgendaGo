@@ -54,6 +54,7 @@ jobs:
           name: lint-report
           path: app/build/reports/lint-results-debug.html
           if-no-files-found: ignore
+          retention-days: 7
 
       - name: Release build (signed)
         env:
@@ -104,6 +105,7 @@ jobs:
           name: AgendaGo-release
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+          retention-days: 30
 
       - name: GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
