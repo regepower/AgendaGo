@@ -1,6 +1,7 @@
 package de.regepower.agendago
 
 import android.Manifest
+import android.accounts.AccountManager
 import android.app.Activity
 import android.app.AlertDialog
 import android.appwidget.AppWidgetManager
@@ -53,12 +54,14 @@ import de.regepower.agendago.data.Event
 import de.regepower.agendago.data.EventRepository
 import de.regepower.agendago.data.Ews
 import de.regepower.agendago.data.FontStyle
+import de.regepower.agendago.data.GTasks
 import de.regepower.agendago.data.OpenTasks
 import de.regepower.agendago.data.PaletteColor
 import de.regepower.agendago.data.TaskList
 import de.regepower.agendago.data.Tasks
 import de.regepower.agendago.data.WidgetPrefs
 import de.regepower.agendago.widget.CalendarWidgetProvider
+import de.regepower.agendago.widget.NetSync
 import de.regepower.agendago.widget.WidgetRenderer
 import de.regepower.agendago.widget.WidgetUpdater
 import java.util.Locale
@@ -170,6 +173,13 @@ class SettingsActivity : Activity() {
         AppShell.onResult(this, requestCode, resultCode, data, WidgetPrefs.store(this), WidgetPrefs::isDeviceKey) {
             refreshWidgets()
             show(widgetId)
+        }
+        if (requestCode == REQUEST_GACCOUNT && resultCode == RESULT_OK) {
+            val name = data?.getStringExtra(AccountManager.KEY_ACCOUNT_NAME) ?: return
+            if (name != GTasks.account(this)) prefs = prefs.copy(gtaskListIds = emptySet())
+            GTasks.setAccount(this, name)
+            refreshSources()
+            fetchGTasks()
         }
     }
 
@@ -740,6 +750,7 @@ class SettingsActivity : Activity() {
             buildList {
                 if (prefs.tasksOrg && Tasks.permitted(this@SettingsActivity)) add(getString(R.string.src_tasksorg))
                 if (prefs.openTasks && OpenTasks.permitted(this@SettingsActivity)) add(getString(R.string.src_opentasks))
+                if (prefs.gtasks) add(getString(R.string.src_gtasks))
                 if (prefs.ews) add(getString(R.string.src_ews))
             }
         sourcesInfo.text =
@@ -762,6 +773,10 @@ class SettingsActivity : Activity() {
         val openTasks: CompoundButton,
         val openTasksStatus: TextView,
         val openTaskLists: Button,
+        val gtasks: CompoundButton,
+        val gtasksStatus: TextView,
+        val gtasksAccount: Button,
+        val gtaskLists: Button,
         val ews: CompoundButton,
         val ewsUrl: EditText,
         val ewsUser: EditText,
@@ -790,6 +805,19 @@ class SettingsActivity : Activity() {
         val openTaskLists = button(R.string.task_lists_all) { pickOpenTaskLists() }
         root.addView(
             sourceCard(R.string.src_opentasks, R.string.src_opentasks_sub, openTasks, openTasksStatus, openTaskLists),
+            fullWidth(top = 12),
+        )
+
+        val gtasks = switchRow(R.string.use_source, false) { onGTasksToggled(it) }
+        val gtasksStatus = secondaryText()
+        val gtasksAccount = button(R.string.btn_gaccount_choose) { chooseGoogleAccount() }
+        val gtaskLists = button(R.string.task_lists_all) { pickGTaskLists() }
+        root.addView(
+            sourceCard(R.string.src_gtasks, R.string.src_gtasks_sub, gtasks, gtasksStatus, gtasksAccount).apply {
+                tooltipText = getString(R.string.help_gtasks)
+                addView(gtaskLists, fullWidth(top = 8))
+                addView(button(R.string.btn_gtasks_sync) { fetchGTasks() }, fullWidth(top = 8))
+            },
             fullWidth(top = 12),
         )
 
@@ -834,6 +862,10 @@ class SettingsActivity : Activity() {
                 openTasks,
                 openTasksStatus,
                 openTaskLists,
+                gtasks,
+                gtasksStatus,
+                gtasksAccount,
+                gtaskLists,
                 ews,
                 ewsUrl,
                 ewsUser,
@@ -961,22 +993,110 @@ class SettingsActivity : Activity() {
         v.tasksOrg.isChecked = prefs.tasksOrg && orgOk
         v.openTasks.isChecked = prefs.openTasks && otOk
         v.ews.isChecked = prefs.ews
+        v.gtasks.isChecked = prefs.gtasks && GTasks.configured(this)
         settingSwitches = false
+        val account = GTasks.account(this)
+        v.gtasksAccount.text = if (account == null) getString(R.string.btn_gaccount_choose) else getString(R.string.gaccount, account)
+        val gLists = GTasks.lists(this)
+        listButton(v.gtaskLists, prefs.gtasks && account != null && gLists.isNotEmpty(), gLists, prefs.gtaskListIds)
+        v.gtasksStatus.text =
+            syncStatus(GTasks.status(this), if (account == null) R.string.gtasks_not_synced else R.string.gtasks_not_fetched)
         v.tasksOrgStatus.text = providerStatus(Tasks.installed(this), orgOk, taskLists.size)
         v.openTasksStatus.text = providerStatus(OpenTasks.installed(this), otOk, openTaskLists.size)
         listButton(v.taskLists, prefs.tasksOrg && orgOk, taskLists, prefs.taskListIds)
         listButton(v.openTaskLists, prefs.openTasks && otOk, openTaskLists, prefs.openTaskListIds)
-        val st = Ews.status(this)
-        v.ewsStatus.text =
-            when {
-                st.error != null -> getString(R.string.ews_error, st.error)
-                st.synced > 0 -> {
-                    val flags = DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_ABBREV_ALL
-                    resources.getQuantityString(R.plurals.ews_synced, st.count, DateUtils.formatDateTime(this, st.synced, flags), st.count)
-                }
-                else -> getString(R.string.ews_not_synced)
-            }
+        v.ewsStatus.text = syncStatus(Ews.status(this), R.string.ews_not_synced)
         updateTaskControls()
+    }
+
+    /** "Last sync … · n open", the error, or [never] for a network source. */
+    private fun syncStatus(
+        st: Ews.Status,
+        never: Int,
+    ): String =
+        when {
+            st.error == GTasks.NEEDS_CONSENT -> getString(R.string.gtasks_consent)
+            st.error != null -> getString(R.string.ews_error, st.error)
+            st.synced > 0 -> {
+                val flags = DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_ABBREV_ALL
+                resources.getQuantityString(R.plurals.ews_synced, st.count, DateUtils.formatDateTime(this, st.synced, flags), st.count)
+            }
+            else -> getString(never)
+        }
+
+    // ---- Google Tasks (direct) ------------------------------------------------------------
+
+    private fun onGTasksToggled(on: Boolean) {
+        if (settingSwitches) return
+        when {
+            !on -> {
+                prefs = prefs.copy(gtasks = false)
+                refreshSources()
+                loadData()
+            }
+            !GTasks.configured(this) -> {
+                refreshSources()
+                chooseGoogleAccount()
+            }
+            else -> {
+                prefs = prefs.copy(gtasks = true)
+                refreshSources()
+                loadData()
+            }
+        }
+    }
+
+    /** System account picker: no GET_ACCOUNTS permission, the app only sees the chosen account. */
+    private fun chooseGoogleAccount() {
+        val current = GTasks.account(this)?.let { android.accounts.Account(it, GOOGLE_ACCOUNT_TYPE) }
+        val intent =
+            AccountManager.newChooseAccountIntent(current, null, arrayOf(GOOGLE_ACCOUNT_TYPE), null, null, null, null)
+        try {
+            @Suppress("DEPRECATION")
+            startActivityForResult(intent, REQUEST_GACCOUNT)
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(this, R.string.gaccount_none, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    /** Asks for access if needed (Google consent screen), then fetches and switches the source on. */
+    private fun fetchGTasks() {
+        if (!GTasks.configured(this)) {
+            chooseGoogleAccount()
+            return
+        }
+        sources?.gtasksStatus?.text = getString(R.string.ews_testing)
+        GTasks.authorize(this) { ok, error ->
+            if (isFinishing) return@authorize
+            if (!ok) {
+                sources?.gtasksStatus?.text = getString(R.string.ews_error, error ?: "")
+                return@authorize
+            }
+            val app = applicationContext
+            Thread {
+                val fetched = GTasks.sync(app).ok
+                runOnUiThread {
+                    if (isFinishing) return@runOnUiThread
+                    if (fetched && !prefs.gtasks) prefs = prefs.copy(gtasks = true)
+                    refreshSources()
+                    loadData()
+                }
+            }.start()
+        }
+    }
+
+    private fun pickGTaskLists() {
+        val lists = GTasks.lists(this)
+        if (lists.isEmpty()) {
+            message(R.string.pick_task_lists_title, R.string.no_gtask_lists)
+            return
+        }
+        val items = lists.map { PickItem(it.id, it.title, it.account, it.color, R.drawable.task_box) }
+        multiPicker(R.string.pick_task_lists_title, items, prefs.gtaskListIds) { ids ->
+            prefs = prefs.copy(gtaskListIds = ids)
+            refreshSources()
+            loadData()
+        }
     }
 
     private fun providerStatus(
@@ -1419,13 +1539,10 @@ class SettingsActivity : Activity() {
     private fun apply() {
         sources?.let { saveEwsFields(it) }
         WidgetPrefs.save(this, widgetId, prefs)
-        if (prefs.tasks && prefs.ews && Ews.configured(this)) {
+        if (prefs.tasks && (prefs.ews || prefs.gtasks)) {
             // First fetch right away; the periodic job takes over afterwards.
             val app = applicationContext
-            Thread {
-                Ews.sync(app)
-                WidgetUpdater.updateAll(app)
-            }.start()
+            Thread { NetSync.syncNow(app, force = true) }.start()
         } else {
             refreshWidgets()
         }
@@ -1601,6 +1718,8 @@ class SettingsActivity : Activity() {
         private const val REQUEST_TASKS = 3
         private const val REQUEST_WRITE_CALENDAR = 4
         private const val REQUEST_OPENTASKS = 5
+        private const val REQUEST_GACCOUNT = 6
+        private const val GOOGLE_ACCOUNT_TYPE = "com.google"
         private const val SWATCH_COLUMNS = 6
         private const val SWATCH_DP = 44
         private const val RGB_MASK = 0xFFFFFF

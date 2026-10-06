@@ -27,7 +27,7 @@
 
     <string name="section_tasks">Aufgaben</string>
     <string name="show_tasks">Aufgaben anzeigen</string>
-    <string name="help_tasks">Offene Aufgaben aus den Quellen unter „Aufgabenquellen konfigurieren“: Tasks.org, OpenTasks und Exchange.</string>
+    <string name="help_tasks">Offene Aufgaben aus den Quellen unter „Aufgabenquellen konfigurieren“: Tasks.org, OpenTasks, Google Tasks und Exchange.</string>
     <string name="task_lists_all">Alle Aufgabenlisten</string>
     <plurals name="task_lists_some">
         <item quantity="one">%1$d Liste</item>
@@ -46,6 +46,17 @@
     <string name="src_tasksorg_sub">Google Tasks, Microsoft To Do, CalDAV über die App Tasks.org</string>
     <string name="src_opentasks">OpenTasks</string>
     <string name="src_opentasks_sub">CalDAV-Aufgaben, die DAVx⁵ in OpenTasks synchronisiert</string>
+    <string name="src_gtasks">Google Tasks (direkt)</string>
+    <string name="src_gtasks_sub">Mit dem Google-Konto auf diesem Handy, ohne Tasks.org; Abruf alle 30 Minuten</string>
+    <string name="btn_gaccount_choose">Google-Konto wählen</string>
+    <string name="gaccount">Konto: %1$s</string>
+    <string name="gaccount_none">Auf diesem Gerät gibt es keine Kontoauswahl.</string>
+    <string name="btn_gtasks_sync">Jetzt abrufen</string>
+    <string name="gtasks_not_synced">Google-Konto wählen, um zu starten.</string>
+    <string name="gtasks_not_fetched">Noch nicht abgerufen: „Jetzt abrufen“ tippen.</string>
+    <string name="gtasks_consent">Zugriff noch nicht bestätigt: „Jetzt abrufen“ tippen.</string>
+    <string name="no_gtask_lists">Noch keine Listen abgerufen. Zuerst „Jetzt abrufen“ tippen.</string>
+    <string name="help_gtasks">Liest deine Google Tasks direkt mit dem Google-Konto auf diesem Handy (nur lesend). Android fragt einmal nach der Erlaubnis. Antippen öffnet die Aufgabe in Google Tasks.</string>
     <string name="src_ews">Exchange (EWS)</string>
     <string name="src_ews_sub">Exchange-Server im eigenen Haus, Abruf alle 30 Minuten</string>
     <string name="use_source">Verwenden</string>
@@ -117,7 +128,7 @@
     <string name="cfg_error">Datei konnte nicht geschrieben werden</string>
     <string name="donate">Spenden</string>
     <string name="donate_text">Diese App wiegt weniger als ein Foto. Unterstütze die Entwicklung auf Liberapay.</string>
-    <string name="help_text"><b>Was macht die App?</b>\nEin Widget für den Startbildschirm mit deinen nächsten Terminen, wahlweise mit Geburtstagen aus den Kontakten und offenen Aufgaben.\n\n<b>Einrichtung</b>\n1. Kalenderzugriff erlauben.\n2. Anzuzeigende Kalender wählen.\n3. „Widget zum Startbildschirm hinzufügen“ oder über die Widget-Liste des Launchers platzieren.\n\n<b>Einstellungen</b>\nAnzahl Termine und Tage, Ort, Schrift, Größe und Farben gelten für das gerade bearbeitete Widget; die Vorschau zeigt das Ergebnis. Antippen eines Termins öffnet ihn im Kalender.\n\n<b>Aufgaben</b>\nQuellen: die kostenlose App Tasks.org (Google Tasks, Microsoft To Do, CalDAV), OpenTasks (CalDAV über DAVx⁵) und Exchange im eigenen Haus über EWS. Auswahl unter „Aufgabenquellen konfigurieren“.\n\n<b>Kalenderfarben</b>\nGoogle-Kalender nutzen die Google-Palette und übertragen die Farbe zu Google. Exchange- und lokale Kalender behalten sie nur auf diesem Gerät; „Eigene Farben beibehalten“ setzt sie nach einem Abgleich wieder.\n\n<b>Speichern / Laden</b>\nDie Symbole oben sichern die Anzeige-Einstellungen in eine JSON-Datei (z. B. in Drive, für den Umzug auf ein neues Handy) und laden sie wieder. Die letzte Datei wird gemerkt; erneutes Speichern fragt, ob sie überschrieben wird. Kalender und Aufgabenlisten wählst du auf jedem Handy neu.</string>
+    <string name="help_text"><b>Was macht die App?</b>\nEin Widget für den Startbildschirm mit deinen nächsten Terminen, wahlweise mit Geburtstagen aus den Kontakten und offenen Aufgaben.\n\n<b>Einrichtung</b>\n1. Kalenderzugriff erlauben.\n2. Anzuzeigende Kalender wählen.\n3. „Widget zum Startbildschirm hinzufügen“ oder über die Widget-Liste des Launchers platzieren.\n\n<b>Einstellungen</b>\nAnzahl Termine und Tage, Ort, Schrift, Größe und Farben gelten für das gerade bearbeitete Widget; die Vorschau zeigt das Ergebnis. Antippen eines Termins öffnet ihn im Kalender.\n\n<b>Aufgaben</b>\nQuellen: die kostenlose App Tasks.org (Google Tasks, Microsoft To Do, CalDAV), OpenTasks (CalDAV über DAVx⁵), Google Tasks direkt mit dem Google-Konto auf dem Handy und Exchange im eigenen Haus über EWS. Auswahl unter „Aufgabenquellen konfigurieren“.\n\n<b>Kalenderfarben</b>\nGoogle-Kalender nutzen die Google-Palette und übertragen die Farbe zu Google. Exchange- und lokale Kalender behalten sie nur auf diesem Gerät; „Eigene Farben beibehalten“ setzt sie nach einem Abgleich wieder.\n\n<b>Speichern / Laden</b>\nDie Symbole oben sichern die Anzeige-Einstellungen in eine JSON-Datei (z. B. in Drive, für den Umzug auf ein neues Handy) und laden sie wieder. Die letzte Datei wird gemerkt; erneutes Speichern fragt, ob sie überschrieben wird. Kalender und Aufgabenlisten wählst du auf jedem Handy neu.</string>
     <string name="btn_calendar_colors">Kalenderfarben ändern</string>
     <string name="help_calendar_colors">Ändert die Farbe für alle Kalender-Apps. Google-Kalender nutzen die Google-Palette und übertragen die Farbe zu Google; andere Kalender behalten sie nur auf diesem Gerät.</string>
     <string name="restore_colors">Eigene Farben beibehalten</string>
