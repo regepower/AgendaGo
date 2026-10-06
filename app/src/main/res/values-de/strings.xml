@@ -73,7 +73,6 @@
     <string name="ews_password">Passwort</string>
     <string name="password_show">Passwort anzeigen</string>
     <string name="password_hide">Passwort verbergen</string>
-    <string name="btn_ews_test">Verbindung testen</string>
     <string name="ews_testing">Verbinde …</string>
     <string name="ews_error">Fehler: %1$s</string>
     <plurals name="ews_synced">

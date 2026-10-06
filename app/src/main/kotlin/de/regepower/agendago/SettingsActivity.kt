@@ -928,7 +928,7 @@ class SettingsActivity : Activity() {
                 ewsStatus,
                 listOf(tasksOrg to tasksOrgDetails, openTasks to openTasksDetails, gtasks to gtasksDetails, ews to ewsDetails),
             )
-        ewsDetails.addView(button(R.string.btn_ews_test) { testEws(views) }, fullWidth(top = 8))
+        ewsDetails.addView(button(R.string.btn_gtasks_sync) { testEws(views) }, fullWidth(top = 8))
         // Direct accounts first, then the apps that hold the tasks.
         for (card in listOf(gtasksCard, ewsCard, tasksOrgCard, openTasksCard)) root.addView(card, fullWidth(top = 12))
 
