@@ -89,6 +89,11 @@
     <string name="section_appearance">Appearance</string>
     <string name="label_font">Font</string>
     <string name="font_sans">Standard</string>
+    <string name="font_light">Light</string>
+    <string name="font_medium">Medium</string>
+    <string name="font_condensed">Condensed</string>
+    <string name="font_smallcaps">Small caps</string>
+    <string name="font_casual">Casual</string>
     <string name="font_serif">Serif</string>
     <string name="font_mono">Monospace</string>
     <string name="font_cursive">Handwriting</string>
