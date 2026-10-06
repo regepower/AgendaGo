@@ -11,8 +11,13 @@ enum class FontStyle(
     val rowLayout: Int,
 ) {
     SANS("sans-serif", R.string.font_sans, R.layout.row_sans),
+    LIGHT("sans-serif-light", R.string.font_light, R.layout.row_light),
+    MEDIUM("sans-serif-medium", R.string.font_medium, R.layout.row_medium),
+    CONDENSED("sans-serif-condensed", R.string.font_condensed, R.layout.row_condensed),
+    SMALLCAPS("sans-serif-smallcaps", R.string.font_smallcaps, R.layout.row_smallcaps),
     SERIF("serif", R.string.font_serif, R.layout.row_serif),
     MONO("monospace", R.string.font_mono, R.layout.row_mono),
+    CASUAL("casual", R.string.font_casual, R.layout.row_casual),
     CURSIVE("cursive", R.string.font_cursive, R.layout.row_cursive),
 }
 

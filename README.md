@@ -14,7 +14,7 @@ A calm home-screen agenda: upcoming events, contact birthdays and open tasks in 
   - On-premises Exchange via EWS (Basic or NTLMv2 login, fetched every 30 minutes, password encrypted with the Android Keystore and never exported)
 - Change calendar colours: Google palette synced to Google, own colours for Exchange/local calendars kept on the device
 - Save/load all settings as a JSON file, built-in help
-- Font (Standard, Serif, Monospace, Handwriting), font size and width of the date column
+- Font (Standard, Light, Medium, Condensed, Small caps, Serif, Monospace, Casual, Handwriting; system fonts, no extra files), font size and width of the date column
 - Material You colours from the wallpaper, follows light/dark mode
 - Transparent background and "invert colours" for any wallpaper
 - Tap an event to open it in your calendar app
