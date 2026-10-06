@@ -14,8 +14,11 @@ android {
         // 31: RemoteViews.setViewLayoutWidth / setColor / RemoteCollectionItems and dynamic colors.
         minSdk = 31
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        // Major.minor by hand for bigger changes; the last part is the CI build number (#57 → 1.0.57).
+        // versionCode follows it, so every CI build installs as an update. Local builds: 1.0.0.
+        val build = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0
+        versionCode = maxOf(build, 1)
+        versionName = "1.0.$build"
     }
 
     // Release key from CI secrets. The alias is optional: without KEY_ALIAS the first alias in

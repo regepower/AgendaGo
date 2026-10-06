@@ -29,7 +29,7 @@ import java.io.IOException
 /**
  * Shared top row of all our apps: large bold app name, then save config, load config and help.
  * Drop-in: copy with ConfigIO.kt, the icons ic_save/ic_load/ic_help and the strings help, help_ok,
- * help_text, help_open, help_closed, help_expanded, help_collapsed, foss_text, source_url, donate, donate_text, donate_url, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite,
+ * help_text, help_open, help_closed, help_expanded, help_collapsed, foss_text, source_url, help_footer, donate, donate_text, donate_url, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite,
  * cfg_overwrite_ok, cfg_other_place; forward onActivityResult to [onResult].
  * Config file: picked with the system file dialog (JSON filter); the last file is remembered and
  * overwritten after asking, so no "(1)" copies; works with cloud providers too.
@@ -124,8 +124,13 @@ object AppShell {
                 // Before setText, so the source URL becomes a tappable link.
                 autoLinkMask = Linkify.WEB_URLS
                 text =
-                    "${a.getString(R.string.app_name)} ${version(a)}\n${a.getString(R.string.donate_text)}\n\n" +
-                    a.getString(R.string.foss_text, a.getString(R.string.source_url))
+                    a.getString(
+                        R.string.help_footer,
+                        a.getString(R.string.app_name),
+                        version(a),
+                        a.getString(R.string.donate_text),
+                        a.getString(R.string.foss_text, a.getString(R.string.source_url)),
+                    )
             },
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
         )

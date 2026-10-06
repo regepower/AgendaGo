@@ -144,6 +144,7 @@
     <string name="help_expanded">expanded</string>
     <string name="help_collapsed">collapsed</string>
     <string name="foss_text">This app is free and open-source software (FOSS) under the GPL-3.0 license.\nSource code: %1$s</string>
+    <string name="help_footer" translatable="false">%1$s %2$s\n%3$s\n\n%4$s</string>
     <string name="source_url" translatable="false">https://github.com/regepower/AgendaGo</string>
     <string name="donate">Donate</string>
     <string name="donate_text">This app weighs less than a photo. Support its development on Liberapay.</string>
