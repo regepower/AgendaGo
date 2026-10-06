@@ -1,6 +1,6 @@
 # AgendaGo
 
-A calm home-screen agenda: upcoming events, contact birthdays and open tasks in one list. Android 12–16, no libraries.
+A calm home-screen agenda: upcoming events, contact birthdays and tasks from different sources in one list. Android 12–16, no libraries.
 
 ## Features
 
