@@ -34,7 +34,10 @@ User decision (AgendaGo, Oct 2026, all apps): `versionName = "1.0.$build"`, `ver
 - `kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }` plus `compileOptions` 17.
 - Signing: **do not** write a `signing {}` block (invalid in `android {}`); create `signingConfigs.create("release")` only when `KEYSTORE_FILE` env exists, and fall back to the debug key for `release` so the APK stays installable without secrets.
 - `lint { abortOnError = true }`; annotate unavoidable warnings (e.g. `tools:ignore="QueryAllPackagesPermission"`) instead of lowering the bar.
-- Measured as useless or harmful (don't re-add): `dependenciesInfo { includeInApk = false }` (0 B), `-repackageclasses ''` (+268 B), Kotlin `-Xno-param/call/receiver-assertions` (≈ −164 B, noise).
+- Kotlin `freeCompilerArgs.addAll("-Xno-param-assertions", "-Xno-call-assertions", "-Xno-receiver-assertions", "-Xstring-concat=inline")` — measured on AgendaGo (120 KB): −1 248 B and −232 B; the gain grows with the amount of own Kotlin code (BootDelay at 20 KB: noise). Trade-off: a null from Java code no longer fails at the parameter but at first use.
+- `app/proguard-rules.pro` with `-assumenosideeffects class android.util.Log { public static int v(...); d; i; w; e }` (−196 B on AgendaGo; drops Log strings) — register it in `proguardFiles(..., "proguard-rules.pro")`.
+- Measured as useless or harmful (don't re-add): `dependenciesInfo { includeInApk = false }` (0 B), `-repackageclasses ''` (+268 B), `-overloadaggressively` / `-allowaccessmodification -mergeinterfacesaggressively` (0 B), `enableV3Signing = false` (0 B, signing block is padded), AGP 8.13 instead of 8.9.1 (+1 064 B), `android.r8.optimizedResourceShrinking=true` on AGP 8.13 (+1 076 B).
+- **Dead code/resources ("Leichen") after many rebuilds:** run `scripts/find-unused-res.py app/src/main` (unused strings/colors/styles/drawables/layouts, orphan translations) and read CI lint `UnusedResources`. Unused *code* needs no hunt — R8 drops it from the APK.
 
 ## Android 15/16 behavior (autostart, background launches)
 
@@ -65,7 +68,7 @@ Default `values/strings.xml` is English and acts as the automatic fallback for a
 
 ## Size optimization
 
-Measured on the reference app (release APK bytes): 255 292 → 138 760 (dex deflate) → 125 467 (metadata excludes); dropping RecyclerView/AndroidX → 20 804. AndroidX was 84 % of the dex. Method (apkanalyzer report + A/B matrix) and the full table: `references/size-optimization.md`. Rule of thumb: raise the question "is this library worth N KB?" before adding it, and measure instead of estimating.
+Measured on the reference app (release APK bytes): 255 292 → 138 760 (dex deflate) → 125 467 (metadata excludes); dropping RecyclerView/AndroidX → 20 804. AndroidX was 84 % of the dex. Method (apkanalyzer report + A/B lab, ready-made in `assets/size-lab/`) and the full tables: `references/size-optimization.md`. Rule of thumb: raise the question "is this library worth N KB?" before adding it, and measure instead of estimating.
 
 ## Feedback loop with device screenshots
 
