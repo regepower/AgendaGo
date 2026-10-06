@@ -260,7 +260,10 @@ object AppShell {
     ) {
         val last = lastFile(a)
         val name = last?.let { displayName(a, it) }
-        if (last == null || name == null) {
+        // A file named after an old app name (e.g. ZenDay.json loaded after a rename) is not
+        // offered for overwriting: the picker opens in the same folder with the new name.
+        val legacy = name != null && legacyNames.any { name.startsWith(it, ignoreCase = true) }
+        if (last == null || name == null || legacy) {
             pickNewFile(a)
             return
         }
