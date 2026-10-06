@@ -11,13 +11,17 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.provider.DocumentsContract
-import android.text.TextUtils
+import android.text.Spanned
+import android.text.style.StyleSpan
+import android.text.util.Linkify
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import java.io.IOException
@@ -25,7 +29,7 @@ import java.io.IOException
 /**
  * Shared top row of all our apps: large bold app name, then save config, load config and help.
  * Drop-in: copy with ConfigIO.kt, the icons ic_save/ic_load/ic_help and the strings help, help_ok,
- * help_text, donate, donate_text, donate_url, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite,
+ * help_text, help_open, help_closed, help_expanded, help_collapsed, foss_text, source_url, donate, donate_text, donate_url, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite,
  * cfg_overwrite_ok, cfg_other_place; forward onActivityResult to [onResult].
  * Config file: picked with the system file dialog (JSON filter); the last file is remembered and
  * overwritten after asking, so no "(1)" copies; works with cloud providers too.
@@ -62,16 +66,92 @@ object AppShell {
             addView(icon(a, R.drawable.ic_help, R.string.help) { showHelp(a) }, LinearLayout.LayoutParams(size, size))
         }
 
-    /** Help text, then app name + version and the donation line; neutral button opens Liberapay. */
+    /**
+     * Help with foldable chapters: every "<b>Title</b>\n…" block of help_text becomes a tappable
+     * title; only the first chapter starts open. Below: app name + version, donation line and the
+     * FOSS note with the source link. Neutral button opens Liberapay.
+     */
     fun showHelp(a: Activity) {
-        val about = "\n\n${a.getString(R.string.app_name)} ${version(a)}\n${a.getString(R.string.donate_text)}"
+        val dp = a.resources.displayMetrics.density
+
+        fun px(v: Int) = (v * dp).toInt()
+        val list =
+            LinearLayout(a).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(px(24), px(8), px(24), px(8))
+            }
+        val ripple = TypedValue().also { a.theme.resolveAttribute(android.R.attr.selectableItemBackground, it, true) }.resourceId
+        var first = true
+        for ((title, body) in helpChapters(a.getText(R.string.help_text))) {
+            val bodyView =
+                TextView(a).apply {
+                    text = body
+                    setTextColor(a.getColor(R.color.md_on_surface))
+                    setPadding(0, 0, 0, px(8))
+                    visibility = if (title == null || first) View.VISIBLE else View.GONE
+                }
+            if (title != null) {
+                first = false
+                val head =
+                    TextView(a).apply {
+                        textSize = 16f
+                        setTypeface(typeface, Typeface.BOLD)
+                        setTextColor(a.getColor(R.color.md_primary))
+                        gravity = Gravity.CENTER_VERTICAL
+                        minHeight = px(44)
+                        setBackgroundResource(ripple)
+                    }
+
+                fun label() {
+                    val open = bodyView.visibility == View.VISIBLE
+                    head.text = a.getString(if (open) R.string.help_open else R.string.help_closed, title)
+                    head.stateDescription = a.getString(if (open) R.string.help_expanded else R.string.help_collapsed)
+                }
+                label()
+                head.setOnClickListener {
+                    bodyView.visibility = if (bodyView.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+                    label()
+                }
+                list.addView(head, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            }
+            list.addView(bodyView, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        }
+        list.addView(
+            TextView(a).apply {
+                textSize = 13f
+                setTextColor(a.getColor(R.color.md_on_surface_variant))
+                setPadding(0, px(12), 0, 0)
+                // Before setText, so the source URL becomes a tappable link.
+                autoLinkMask = Linkify.WEB_URLS
+                text =
+                    "${a.getString(R.string.app_name)} ${version(a)}\n${a.getString(R.string.donate_text)}\n\n" +
+                    a.getString(R.string.foss_text, a.getString(R.string.source_url))
+            },
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
+        )
         AlertDialog
             .Builder(a)
             .setTitle(R.string.help)
-            .setMessage(TextUtils.concat(a.getText(R.string.help_text), about))
+            .setView(ScrollView(a).apply { addView(list) })
             .setPositiveButton(R.string.help_ok, null)
             .setNeutralButton(R.string.donate) { _, _ -> openDonate(a) }
             .show()
+    }
+
+    /** Splits help_text at blank lines; a chapter starting with a bold line gets that line as title. */
+    private fun helpChapters(text: CharSequence): List<Pair<String?, CharSequence>> {
+        val plain = text.toString()
+        val out = mutableListOf<Pair<String?, CharSequence>>()
+        var start = 0
+        while (start < plain.length) {
+            val end = plain.indexOf("\n\n", start).let { if (it < 0) plain.length else it }
+            val chunk = text.subSequence(start, end)
+            val nl = chunk.indexOf('\n')
+            val bold = nl > 0 && chunk is Spanned && chunk.getSpans(0, nl, StyleSpan::class.java).isNotEmpty()
+            out += if (bold) chunk.subSequence(0, nl).toString() to chunk.subSequence(nl + 1, chunk.length) else null to chunk
+            start = end + 2
+        }
+        return out
     }
 
     /** versionName from the package (no BuildConfig needed). */

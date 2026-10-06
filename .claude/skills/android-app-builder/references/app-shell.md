@@ -2,7 +2,7 @@
 
 User decision (MinDNSChanger, Oct 2026): every app gets the same top row; rolled out to BootDelay, MinCalSync, AgendaGo (formerly ZenDay/MinCalWidget), SwitchDNS (formerly MinDNSChanger).
 
-**Drop-in:** copy `AppShell.kt` + `ConfigIO.kt` from `regepower/AgendaGo` (reference version; change only the package line), the vectors `ic_save/ic_load/ic_help`, the strings `help, help_ok, help_text, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite ("%1$s überschreiben?"), cfg_overwrite_ok ("Überschreiben"), cfg_other_place ("Anderer Ort")` (EN + DE), then:
+**Drop-in:** copy `AppShell.kt` + `ConfigIO.kt` from `regepower/AgendaGo` (reference version; change only the package line), the vectors `ic_save/ic_load/ic_help`, the strings `help, help_ok, help_text, help_open, help_closed, help_expanded, help_collapsed, foss_text, source_url, donate, donate_text, donate_url, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite ("%1$s überschreiben?"), cfg_overwrite_ok ("Überschreiben"), cfg_other_place ("Anderer Ort")` (EN + DE), then:
 ```kotlin
 root.addView(AppShell.header(this, prefs.sp, Prefs.DEVICE_KEYS::contains))   // first row; sp/keep needed for overwrite-without-picker
 override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -27,7 +27,7 @@ Keep predicates in use: BootDelay boot counter keys, MinCalSync source/target ca
 - Picker dialogs: two-line items — name on line 1, details on line 2 via `SpannableString` with `RelativeSizeSpan(0.75f)` + `ForegroundColorSpan(md_outline)` passed to `setSingleChoiceItems`.
 
 ## Help
-`AlertDialog` with `setMessage(getText(R.string.help_text))`; `help_text` uses `<b>` section titles and `\n` line breaks, EN + DE. Sections: what the app does, setup steps, each feature in 1–2 sentences, OEM caveats, save/load. Button `help_ok` ("Verstanden"). MinCalSync also opens help automatically on first start (nothing configured yet).
+Dialog built by `AppShell.showHelp`: `help_text` (EN + DE) is split at blank lines; a block starting with a `<b>Title</b>` line becomes a **foldable chapter** (tap the title, ▸/▾ + stateDescription for TalkBack), only the first chapter starts open, so long help stays short. Below the chapters: app name + version, `donate_text` and `foss_text` ("free and open-source software (FOSS) under GPL-3.0, source: %1$s" with `source_url`, auto-linked). Buttons `help_ok` ("Verstanden") and neutral `donate` (Liberapay). Sections: what the app does, setup steps, each feature in 1–2 sentences, OEM caveats, save/load. MinCalSync also opens help automatically on first start (nothing configured yet).
 
 ## Config save/load (no permission)
 - User decision (ZenDay, Oct 2026), file dialog + remembered file:
