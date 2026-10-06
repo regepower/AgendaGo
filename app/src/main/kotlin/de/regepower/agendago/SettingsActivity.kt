@@ -2,6 +2,7 @@ package de.regepower.agendago
 
 import android.Manifest
 import android.accounts.AccountManager
+import android.animation.LayoutTransition
 import android.app.Activity
 import android.app.AlertDialog
 import android.appwidget.AppWidgetManager
@@ -782,6 +783,8 @@ class SettingsActivity : Activity() {
         val ewsUser: EditText,
         val ewsPassword: EditText,
         val ewsStatus: TextView,
+        /** Everything below each "Use" switch; shown only while that source is switched on. */
+        val details: List<Pair<CompoundButton, View>>,
     )
 
     /** True while switches are set from code, so their listeners do not start permission flows. */
@@ -794,17 +797,21 @@ class SettingsActivity : Activity() {
                 setPadding(px(16), px(12), px(16), px(16))
             }
         root.addView(subHeader(R.string.task_sources_title), fullWidth())
+        // Smooth expand/collapse when a source is switched on or off.
+        root.layoutTransition = LayoutTransition().apply { enableTransitionType(LayoutTransition.CHANGING) }
 
         val tasksOrg = switchRow(R.string.use_source, false) { onTasksOrgToggled(it) }
         val tasksOrgStatus = secondaryText()
         val taskLists = button(R.string.task_lists_all) { pickTaskLists() }
-        root.addView(sourceCard(R.string.src_tasksorg, R.string.src_tasksorg_sub, tasksOrg, tasksOrgStatus, taskLists), fullWidth(top = 12))
+        val tasksOrgDetails = details(tasksOrgStatus to 0, taskLists to 8)
+        root.addView(sourceCard(R.string.src_tasksorg, R.string.src_tasksorg_sub, tasksOrg, tasksOrgDetails), fullWidth(top = 12))
 
         val openTasks = switchRow(R.string.use_source, false) { onOpenTasksToggled(it) }
         val openTasksStatus = secondaryText()
         val openTaskLists = button(R.string.task_lists_all) { pickOpenTaskLists() }
+        val openTasksDetails = details(openTasksStatus to 0, openTaskLists to 8)
         root.addView(
-            sourceCard(R.string.src_opentasks, R.string.src_opentasks_sub, openTasks, openTasksStatus, openTaskLists),
+            sourceCard(R.string.src_opentasks, R.string.src_opentasks_sub, openTasks, openTasksDetails),
             fullWidth(top = 12),
         )
 
@@ -812,11 +819,16 @@ class SettingsActivity : Activity() {
         val gtasksStatus = secondaryText()
         val gtasksAccount = button(R.string.btn_gaccount_choose) { chooseGoogleAccount() }
         val gtaskLists = button(R.string.task_lists_all) { pickGTaskLists() }
+        val gtasksDetails =
+            details(
+                gtasksStatus to 0,
+                gtasksAccount to 8,
+                gtaskLists to 8,
+                button(R.string.btn_gtasks_sync) { fetchGTasks() } to 8,
+            )
         root.addView(
-            sourceCard(R.string.src_gtasks, R.string.src_gtasks_sub, gtasks, gtasksStatus, gtasksAccount).apply {
+            sourceCard(R.string.src_gtasks, R.string.src_gtasks_sub, gtasks, gtasksDetails).apply {
                 tooltipText = getString(R.string.help_gtasks)
-                addView(gtaskLists, fullWidth(top = 8))
-                addView(button(R.string.btn_gtasks_sync) { fetchGTasks() }, fullWidth(top = 8))
             },
             fullWidth(top = 12),
         )
@@ -825,7 +837,7 @@ class SettingsActivity : Activity() {
             switchRow(R.string.use_source, prefs.ews) { on ->
                 if (!settingSwitches) {
                     prefs = prefs.copy(ews = on)
-                    updateTaskControls()
+                    refreshSources()
                     loadData()
                 }
             }
@@ -842,17 +854,18 @@ class SettingsActivity : Activity() {
                 InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD,
             )
         val ewsStatus = secondaryText()
+        val ewsDetails = details(ewsStatus to 0)
+        for ((label, edit) in listOf(
+            R.string.ews_url to ewsUrl,
+            R.string.ews_user to ewsUser,
+            R.string.ews_password to ewsPassword,
+        )) {
+            ewsDetails.addView(secondaryText().apply { setText(label) }, fullWidth(top = 8))
+            ewsDetails.addView(if (edit === ewsPassword) passwordRow(edit) else edit, fullWidth())
+        }
         val ewsCard =
-            sourceCard(R.string.src_ews, R.string.src_ews_sub, ews, ewsStatus, null).apply {
+            sourceCard(R.string.src_ews, R.string.src_ews_sub, ews, ewsDetails).apply {
                 tooltipText = getString(R.string.help_ews)
-                for ((label, edit) in listOf(
-                    R.string.ews_url to ewsUrl,
-                    R.string.ews_user to ewsUser,
-                    R.string.ews_password to ewsPassword,
-                )) {
-                    addView(secondaryText().apply { setText(label) }, fullWidth(top = 8))
-                    addView(if (edit === ewsPassword) passwordRow(edit) else edit, fullWidth())
-                }
             }
         val views =
             SourceViews(
@@ -871,8 +884,9 @@ class SettingsActivity : Activity() {
                 ewsUser,
                 ewsPassword,
                 ewsStatus,
+                listOf(tasksOrg to tasksOrgDetails, openTasks to openTasksDetails, gtasks to gtasksDetails, ews to ewsDetails),
             )
-        ewsCard.addView(button(R.string.btn_ews_test) { testEws(views) }, fullWidth(top = 8))
+        ewsDetails.addView(button(R.string.btn_ews_test) { testEws(views) }, fullWidth(top = 8))
         root.addView(ewsCard, fullWidth(top = 12))
 
         root.addView(
@@ -919,19 +933,25 @@ class SettingsActivity : Activity() {
             )
         }
 
+    /** Title, one-line description and "Use" switch; [details] only while the switch is on. */
     private fun sourceCard(
         title: Int,
         subtitle: Int,
         switch: CompoundButton,
-        status: TextView,
-        listButton: Button?,
+        details: View,
     ) = card().apply {
         addView(header(title))
         addView(secondaryText().apply { setText(subtitle) }, fullWidth(top = 2))
         addView(switch, fullWidth(top = 4))
-        addView(status, fullWidth())
-        if (listButton != null) addView(listButton, fullWidth(top = 8))
+        addView(details, fullWidth())
     }
+
+    /** Vertical group of views with their top margins in dp. */
+    private fun details(vararg views: Pair<View, Int>) =
+        LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            for ((view, top) in views) addView(view, fullWidth(top = top))
+        }
 
     private fun secondaryText() =
         TextView(this).apply {
@@ -1006,6 +1026,7 @@ class SettingsActivity : Activity() {
         listButton(v.taskLists, prefs.tasksOrg && orgOk, taskLists, prefs.taskListIds)
         listButton(v.openTaskLists, prefs.openTasks && otOk, openTaskLists, prefs.openTaskListIds)
         v.ewsStatus.text = syncStatus(Ews.status(this), R.string.ews_not_synced)
+        for ((switch, details) in v.details) details.visibility = if (switch.isChecked) View.VISIBLE else View.GONE
         updateTaskControls()
     }
 
