@@ -93,7 +93,7 @@
     <string name="font_cursive">Schreibschrift</string>
     <string name="label_font_size">Schriftgröße</string>
     <string name="label_date_width">Breite Tagesspalte</string>
-    <string name="transparent">Transparenter Hintergrund</string>
+    <string name="label_opacity">Deckkraft Hintergrund</string>
     <string name="invert">Farben umkehren</string>
     <string name="help_invert">Helle Schrift auf dunklem Grund im hellen Modus und umgekehrt. Praktisch bei transparentem Hintergrund.</string>
 

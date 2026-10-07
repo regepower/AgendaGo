@@ -96,7 +96,7 @@
     <string name="font_cursive">Handwriting</string>
     <string name="label_font_size">Font size</string>
     <string name="label_date_width">Width of day column</string>
-    <string name="transparent">Transparent background</string>
+    <string name="label_opacity">Background opacity</string>
     <string name="invert">Invert colors</string>
     <string name="help_invert">Light text on dark background in light mode and the other way round. Useful with a transparent background.</string>
 
@@ -125,6 +125,7 @@
     <!-- Language-neutral formats. -->
     <string name="unit_sp" translatable="false">%1$d sp</string>
     <string name="unit_dp" translatable="false">%1$d dp</string>
+    <string name="unit_percent" translatable="false">%1$d %%</string>
     <string name="preview_time_1" translatable="false">16:00</string>
     <string name="preview_time_2" translatable="false">09:30</string>
     <string name="unit_n" translatable="false">%1$d</string>
