@@ -75,7 +75,7 @@ object WidgetRenderer {
         views.setInt(R.id.bg, "setImageAlpha", alpha255(prefs))
         val density = context.resources.displayMetrics.density
         val (padH, padV) = paddingDp(prefs).let { (h, v) -> (h * density).toInt() to (v * density).toInt() }
-        views.setViewPadding(android.R.id.background, padH, padV, padH, padV)
+        views.setViewPadding(R.id.content, padH, padV, padH, padV)
 
         views.setTextViewText(
             R.id.empty,

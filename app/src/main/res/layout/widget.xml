@@ -1,34 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Widget root. The list items are RemoteCollectionItems built in WidgetRenderer. -->
+<!-- Test (Oct 2026): square corners. Not @android:id/background, so launchers that round widgets
+     via that view (Launcher3 RoundedCornerEnforcement) leave the corners alone; the background
+     layer tries to grow 8dp past the edges (negative margin, no clipping here; the host may still clip). -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@android:id/background"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="8dp">
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
     <!-- Background layer; its alpha is the "background opacity" setting. -->
     <ImageView
         android:id="@+id/bg"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_margin="-8dp"
         android:importantForAccessibility="no"
         android:scaleType="fitXY"
         android:src="@drawable/widget_bg" />
 
-    <ListView
-        android:id="@+id/list"
+    <FrameLayout
+        android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:divider="@null"
-        android:dividerHeight="0dp"
-        android:scrollbars="none" />
+        android:padding="8dp">
 
-    <TextView
-        android:id="@+id/empty"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:text="@string/widget_empty"
-        android:textColor="@color/w_text2"
-        android:textSize="14sp" />
+        <ListView
+            android:id="@+id/list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:dividerHeight="0dp"
+            android:scrollbars="none" />
+
+        <TextView
+            android:id="@+id/empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/widget_empty"
+            android:textColor="@color/w_text2"
+            android:textSize="14sp" />
+    </FrameLayout>
 </FrameLayout>
