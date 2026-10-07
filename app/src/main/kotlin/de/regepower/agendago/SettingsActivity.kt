@@ -317,8 +317,8 @@ class SettingsActivity : Activity() {
                     fullWidth(top = 4),
                 )
                 addView(
-                    switchRow(R.string.transparent, prefs.transparent) {
-                        prefs = prefs.copy(transparent = it)
+                    seekRow(R.string.label_opacity, WidgetPrefs.OPACITY, prefs.bgOpacity, R.string.unit_percent) {
+                        prefs = prefs.copy(bgOpacity = it)
                         renderPreview()
                     },
                     fullWidth(top = 4),
@@ -1579,7 +1579,7 @@ class SettingsActivity : Activity() {
     private fun renderPreview() {
         if (!::previewBox.isInitialized) return
         val pal = WidgetRenderer.palette(prefs)
-        previewBox.setBackgroundResource(pal.bg)
+        previewBox.background = getDrawable(pal.bg)?.mutate()?.apply { alpha = WidgetRenderer.alpha255(prefs) }
         previewBox.removeAllViews()
         val labels = DateLabels(this)
         val cols = WidgetRenderer.columns(prefs, labels)

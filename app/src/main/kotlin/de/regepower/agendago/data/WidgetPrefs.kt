@@ -28,7 +28,8 @@ data class WidgetPrefs(
     val maxEvents: Int = 7,
     val maxDays: Int = 15,
     val showLocation: Boolean = true,
-    val transparent: Boolean = false,
+    /** Background opacity in percent; 0 = fully transparent (and no inner padding). */
+    val bgOpacity: Int = 100,
     val invert: Boolean = false,
     val font: FontStyle = FontStyle.SANS,
     val fontSizeSp: Int = 11,
@@ -48,10 +49,13 @@ data class WidgetPrefs(
     /** Empty = all Google Tasks lists (keys from [GTasks.listKey]). */
     val gtaskListIds: Set<Long> = emptySet(),
 ) {
+    val transparent: Boolean get() = bgOpacity == 0
+
     companion object {
         val EVENTS = 1..50
         val DAYS = 1..90
         val FONT_SIZE = 10..24
+        val OPACITY = 0..100
         val DATE_WIDTH = 30..160
 
         private const val FILE = "widgets"
@@ -81,7 +85,11 @@ data class WidgetPrefs(
                 maxEvents = sp.getInt(p + "events", d.maxEvents).coerceIn(EVENTS),
                 maxDays = sp.getInt(p + "days", d.maxDays).coerceIn(DAYS),
                 showLocation = sp.getBoolean(p + "location", d.showLocation),
-                transparent = sp.getBoolean(p + "transparent", d.transparent),
+                // Older versions had an on/off switch "transparent".
+                bgOpacity =
+                    sp
+                        .getInt(p + "opacity", if (sp.getBoolean(p + "transparent", false)) 0 else d.bgOpacity)
+                        .coerceIn(OPACITY),
                 invert = sp.getBoolean(p + "invert", d.invert),
                 font = FontStyle.entries.firstOrNull { it.name == sp.getString(p + "font", null) } ?: d.font,
                 fontSizeSp = sp.getInt(p + "size", d.fontSizeSp).coerceIn(FONT_SIZE),
@@ -118,7 +126,8 @@ data class WidgetPrefs(
                     .putInt(p + "events", prefs.maxEvents)
                     .putInt(p + "days", prefs.maxDays)
                     .putBoolean(p + "location", prefs.showLocation)
-                    .putBoolean(p + "transparent", prefs.transparent)
+                    .putInt(p + "opacity", prefs.bgOpacity)
+                    .remove(p + "transparent")
                     .putBoolean(p + "invert", prefs.invert)
                     .putString(p + "font", prefs.font.name)
                     .putInt(p + "size", prefs.fontSizeSp)

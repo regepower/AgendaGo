@@ -34,7 +34,7 @@ object WidgetRenderer {
         when {
             prefs.invert -> Palette(R.drawable.widget_bg_inv, R.color.w_text_inv, R.color.w_text2_inv)
             else -> Palette(R.drawable.widget_bg, R.color.w_text, R.color.w_text2)
-        }.let { if (prefs.transparent) it.copy(bg = R.drawable.widget_bg_none) else it }
+        }
 
     fun hasPermission(context: Context) =
         context.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
@@ -70,7 +70,9 @@ object WidgetRenderer {
     ): RemoteViews {
         val pal = palette(prefs)
         val views = RemoteViews(context.packageName, R.layout.widget)
-        views.setInt(android.R.id.background, "setBackgroundResource", pal.bg)
+        // Background as an image layer: ImageView.setImageAlpha is remotable, a view alpha is not.
+        views.setImageViewResource(R.id.bg, pal.bg)
+        views.setInt(R.id.bg, "setImageAlpha", alpha255(prefs))
         val density = context.resources.displayMetrics.density
         val (padH, padV) = paddingDp(prefs).let { (h, v) -> (h * density).toInt() to (v * density).toInt() }
         views.setViewPadding(android.R.id.background, padH, padV, padH, padV)
@@ -128,6 +130,12 @@ object WidgetRenderer {
         prefs: WidgetPrefs,
         labels: DateLabels,
     ) = Columns(prefs.dateWidthDp.toFloat(), labels.timeColumnWidthDp(prefs))
+
+    /** Background opacity 0..255 for [WidgetPrefs.bgOpacity] in percent. */
+    fun alpha255(prefs: WidgetPrefs) = (prefs.bgOpacity * ALPHA_MAX + PERCENT / 2) / PERCENT
+
+    private const val ALPHA_MAX = 255
+    private const val PERCENT = 100
 
     /** Inner padding in dp: none on a transparent background, room for the rounded corners otherwise. */
     fun paddingDp(prefs: WidgetPrefs): Pair<Int, Int> = if (prefs.transparent) 0 to 0 else 10 to 6
