@@ -137,8 +137,9 @@ object WidgetRenderer {
     private const val ALPHA_MAX = 255
     private const val PERCENT = 100
 
-    /** Inner padding in dp: none on a transparent background, room for the rounded corners otherwise. */
-    fun paddingDp(prefs: WidgetPrefs): Pair<Int, Int> = if (prefs.transparent) 0 to 0 else 10 to 6
+    /** Inner padding in dp: none — the background has square corners, so text may use the full width. */
+    @Suppress("UNUSED_PARAMETER")
+    fun paddingDp(prefs: WidgetPrefs): Pair<Int, Int> = 0 to 0
 
     private fun row(
         context: Context,
