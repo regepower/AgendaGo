@@ -2,7 +2,6 @@ package de.regepower.agendago
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -11,9 +10,11 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.provider.DocumentsContract
+import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.method.LinkMovementMethod
 import android.text.style.StyleSpan
-import android.text.util.Linkify
+import android.text.style.URLSpan
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
@@ -33,7 +34,7 @@ import java.time.format.FormatStyle
 /**
  * Shared top row of all our apps: large bold app name, then save config, load config and help.
  * Drop-in: copy with ConfigIO.kt, the icons ic_save/ic_load/ic_help and the strings help, help_ok,
- * help_text, help_open, help_closed, help_expanded, help_collapsed, foss_text, source_url, help_footer, donate, donate_text, donate_url, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite,
+ * help_text, help_open, help_closed, help_expanded, help_collapsed, foss_text, source_url, donate_text (with <a href> links), cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite,
  * cfg_overwrite_ok, cfg_other_place; forward onActivityResult to [onResult].
  * Config file: picked with the system file dialog (JSON filter); the last file is remembered and
  * overwritten after asking, so no "(1)" copies; works with cloud providers too.
@@ -73,7 +74,7 @@ object AppShell {
     /**
      * Help with foldable chapters: every "<b>Title</b>\n…" block of help_text becomes a tappable
      * title; only the first chapter starts open. Below: app name + version, donation line and the
-     * FOSS note with the source link. Neutral button opens Liberapay.
+     * FOSS note with the source link. Donation links sit in the text; the only button (OK) is centred.
      */
     fun showHelp(a: Activity) {
         val dp = a.resources.displayMetrics.density
@@ -125,17 +126,9 @@ object AppShell {
                 textSize = 13f
                 setTextColor(a.getColor(R.color.md_on_surface_variant))
                 setPadding(0, px(12), 0, 0)
-                // Before setText, so the source URL becomes a tappable link.
-                autoLinkMask = Linkify.WEB_URLS
-                text =
-                    a.getString(
-                        R.string.help_footer,
-                        a.getString(R.string.app_name),
-                        version(a),
-                        buildDate(a),
-                        a.getString(R.string.donate_text),
-                        a.getString(R.string.foss_text, a.getString(R.string.source_url)),
-                    )
+                // Donation links come from the string resource, the source URL is linked in footer().
+                movementMethod = LinkMovementMethod.getInstance()
+                text = footer(a)
             },
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
         )
@@ -144,8 +137,8 @@ object AppShell {
             .setTitle(R.string.help)
             .setView(ScrollView(a).apply { addView(list) })
             .setPositiveButton(R.string.help_ok, null)
-            .setNeutralButton(R.string.donate) { _, _ -> openDonate(a) }
             .show()
+            .also { centerOk(it) }
     }
 
     /** Splits help_text at blank lines; a chapter starting with a bold line gets that line as title. */
@@ -199,12 +192,39 @@ object AppShell {
             ""
         }
 
-    private fun openDonate(a: Activity) {
-        try {
-            a.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(a.getString(R.string.donate_url))))
-        } catch (e: ActivityNotFoundException) {
-            Log.w("AppShell", "donate", e)
-            Toast.makeText(a, R.string.donate_url, Toast.LENGTH_LONG).show()
+    /** "<App> 1.0.57 · date", donation line (links in the string resource), FOSS note with linked source URL. */
+    private fun footer(a: Activity): CharSequence {
+        val url = a.getString(R.string.source_url)
+        val foss = a.getString(R.string.foss_text, url)
+        val sb =
+            SpannableStringBuilder()
+                .append(a.getString(R.string.app_name))
+                .append(' ')
+                .append(version(a))
+                .append(" · ")
+                .append(buildDate(a))
+                .append('\n')
+                .append(a.getText(R.string.donate_text))
+                .append("\n\n")
+        val start = sb.length + foss.indexOf(url)
+        sb.append(foss)
+        sb.setSpan(URLSpan(url), start, start + url.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        return sb
+    }
+
+    /** Help has a single button: hide the bar's spacer and centre it. */
+    private fun centerOk(d: AlertDialog) {
+        val b = d.getButton(AlertDialog.BUTTON_POSITIVE) ?: return
+        val bar = b.parent as? ViewGroup ?: return
+        for (i in 0 until bar.childCount) {
+            val c = bar.getChildAt(i)
+            if (c !== b) c.visibility = View.GONE
+        }
+        (b.layoutParams as? LinearLayout.LayoutParams)?.let {
+            it.width = ViewGroup.LayoutParams.MATCH_PARENT
+            it.weight = 1f
+            it.gravity = Gravity.CENTER
+            b.layoutParams = it
         }
     }
 

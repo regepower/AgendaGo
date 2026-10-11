@@ -20,7 +20,9 @@ android {
         // versionCode follows it, so every CI build installs as an update. Local builds: 1.0.0.
         val build = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0
         versionCode = maxOf(build, 1)
-        versionName = "1.0.$build"
+        // A GitHub release names the version itself (tag "1.0.39" or "v1.0.39").
+        val tag = System.getenv("RELEASE_TAG")?.removePrefix("v")?.takeIf { it.isNotBlank() }
+        versionName = tag ?: "1.0.$build"
         // Build day for the help dialog (manifest meta-data, no BuildConfig/resource needed).
         manifestPlaceholders["buildDate"] = LocalDate.now(ZoneId.of("Europe/Berlin")).toString()
     }

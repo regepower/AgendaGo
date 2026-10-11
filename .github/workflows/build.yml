@@ -3,12 +3,26 @@ name: Build
 on:
   push:
     branches: ["**"]
-    tags: ["v*"]
+    tags: ["v*", "[0-9]*"]
   pull_request:
+  # Release with one tap: Actions -> Build -> Run workflow -> tick "release".
   workflow_dispatch:
+    inputs:
+      release:
+        description: "Create a GitHub release (tag = build version 1.0.<run>)"
+        type: boolean
+        default: false
+      release_tag:
+        description: "Existing release tag to attach the APK to (e.g. 1.0.39)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
+
+env:
+  # Tag of the GitHub release this build belongs to (empty for normal builds); also the versionName.
+  RELEASE_TAG: ${{ inputs.release_tag || (inputs.release && format('1.0.{0}', github.run_number)) || (github.ref_type == 'tag' && github.ref_name) || '' }}
 
 jobs:
   build:
@@ -107,8 +121,15 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      - name: Name release APK
+        if: env.RELEASE_TAG != ''
+        run: cp app/build/outputs/apk/release/*.apk "$RUNNER_TEMP/AgendaGo-${RELEASE_TAG#v}.apk"
+
       - name: GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: env.RELEASE_TAG != ''
         uses: softprops/action-gh-release@v3
         with:
-          files: app/build/outputs/apk/release/*.apk
+          tag_name: ${{ env.RELEASE_TAG }}
+          # New tag (release input) goes on the commit that was built.
+          target_commitish: ${{ github.sha }}
+          files: ${{ runner.temp }}/AgendaGo-*.apk
