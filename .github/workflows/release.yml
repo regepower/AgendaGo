@@ -1,0 +1,63 @@
+name: Release
+
+# One click: GitHub → Actions → Release → Run workflow.
+# Publishes the APK of an existing Build run as GitHub release 1.0.<build number>, without
+# rebuilding: the release contains exactly the APK that was tested (same version, same signature).
+on:
+  workflow_dispatch:
+    inputs:
+      build:
+        description: "Build number (e.g. 86); empty = latest successful build on main"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      APP: AgendaGo
+    steps:
+      - name: Find build run
+        run: |
+          set -euo pipefail
+          RUNS=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/build.yml/runs?branch=main&status=success&per_page=100" \
+            --jq '.workflow_runs[] | "\(.id) \(.run_number) \(.head_sha)"')
+          if [ -n "${{ inputs.build }}" ]; then
+            LINE=$(echo "$RUNS" | awk -v n="${{ inputs.build }}" '$2 == n' | head -1)
+          else
+            LINE=$(echo "$RUNS" | head -1)
+          fi
+          if [ -z "$LINE" ]; then
+            echo "::error title=Release::No successful Build run found on main (build '${{ inputs.build }}')"
+            exit 1
+          fi
+          read -r ID NUM SHA <<< "$LINE"
+          {
+            echo "RUN_ID=$ID"
+            echo "TAG=1.0.$NUM"
+            echo "SHA=$SHA"
+          } >> "$GITHUB_ENV"
+
+      - name: Download APK of build ${{ env.TAG }}
+        run: |
+          set -euo pipefail
+          gh run download "$RUN_ID" -R "$GITHUB_REPOSITORY" -n "$APP-release" -D "$RUNNER_TEMP/apk"
+          APK=$(find "$RUNNER_TEMP/apk" -name '*.apk' | head -1)
+          [ -n "$APK" ] || { echo "::error title=Release::Artifact $APP-release of run $RUN_ID has no APK (expired after 30 days?)"; exit 1; }
+          cp "$APK" "$RUNNER_TEMP/$APP-$TAG.apk"
+          echo "APK_FILE=$RUNNER_TEMP/$APP-$TAG.apk" >> "$GITHUB_ENV"
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ env.TAG }}
+          name: ${{ env.TAG }}
+          target_commitish: ${{ env.SHA }}
+          files: ${{ env.APK_FILE }}
+
+      - name: "Released ${{ env.TAG }}"
+        run: echo "release $TAG from run $RUN_ID ($SHA)"
