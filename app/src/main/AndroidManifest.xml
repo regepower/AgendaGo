@@ -21,6 +21,15 @@
     <queries>
         <package android:name="org.tasks" />
         <package android:name="org.dmfs.tasks" />
+        <!-- The system calendar app, so event taps don't land in Outlook & co. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.APP_CALENDAR" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="content" android:host="com.android.calendar" />
+        </intent>
     </queries>
 
     <application
