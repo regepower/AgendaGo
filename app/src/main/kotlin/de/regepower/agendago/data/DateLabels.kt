@@ -13,7 +13,7 @@ import java.util.Date
 
 /**
  * Text for the day and time columns, like the original widget:
- * "Today | " (all-day), "09:00 | 10:30" (timed today: start | end), "Tmrw | ", "24.10. | 09:30",
+ * "Today | " (all-day), "09:00 - 10:30" (timed today, across both columns), "Tmrw | ", "24.10. | 09:30",
  * multi-day "Today - Tmrw" across both columns.
  */
 class DateLabels(
@@ -43,11 +43,11 @@ class DateLabels(
         if (last > day && last > today) {
             return Label(context.getString(R.string.date_range, dayText, dayText(last)), "", span = true)
         }
-        // Timed events today: start in the day column, end in the time column ("09:00 | 10:30").
+        // Timed events today: "09:00 - 10:30" across the day and time column, like the original widget.
         if (!event.allDay && day == today && last == today) {
             val start = timeFormat.format(Date(event.begin))
-            val end = if (event.end > event.begin) timeFormat.format(Date(event.end)) else ""
-            return Label(start, end, span = false)
+            if (event.end <= event.begin) return Label(start, "", span = false)
+            return Label(context.getString(R.string.date_range, start, timeFormat.format(Date(event.end))), "", span = true)
         }
         // All-day events and events that started on an earlier day show no time.
         val time = if (event.allDay || day < today) "" else timeFormat.format(Date(event.begin))
