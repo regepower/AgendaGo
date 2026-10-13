@@ -132,6 +132,8 @@
     <string name="birthday" translatable="false">🎂 %1$s</string>
     <string name="birthday_age" translatable="false">🎂 %1$s (%2$d)</string>
     <string name="date_range" translatable="false">%1$s - %2$s</string>
+    <!-- Hair spaces (U+200A) around the hyphen: "09:30 - 14:00" fits the day + time column. -->
+    <string name="time_range" translatable="false">%1$s - %2$s</string>
     <string name="help">Help</string>
     <string name="help_ok">Got it</string>
     <string name="cfg_save">Save configuration</string>

@@ -47,7 +47,7 @@ class DateLabels(
         if (!event.allDay && day == today && last == today) {
             val start = timeFormat.format(Date(event.begin))
             if (event.end <= event.begin) return Label(start, "", span = false)
-            return Label(context.getString(R.string.date_range, start, timeFormat.format(Date(event.end))), "", span = true)
+            return Label(context.getString(R.string.time_range, start, timeFormat.format(Date(event.end))), "", span = true)
         }
         // All-day events and events that started on an earlier day show no time.
         val time = if (event.allDay || day < today) "" else timeFormat.format(Date(event.begin))
