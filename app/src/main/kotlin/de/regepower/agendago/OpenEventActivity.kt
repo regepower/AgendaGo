@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.ContentUris
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.CalendarContract
 
@@ -35,11 +36,24 @@ class OpenEventActivity : Activity() {
                         }.build()
                 Intent(Intent.ACTION_VIEW, time)
             }
+        // Calendar links go to the device's calendar app (APP_CALENDAR), not to whatever else
+        // registered for calendar URIs (Outlook etc. grab Exchange events otherwise).
+        if (target.data?.authority == CalendarContract.AUTHORITY) calendarPackage(target)?.let { target.setPackage(it) }
         try {
             startActivity(target.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         } catch (e: ActivityNotFoundException) {
             // No calendar app installed: nothing sensible to open.
         }
         finish()
+    }
+
+    /** Package of the default calendar app, if it can show [view]; null = let Android choose. */
+    private fun calendarPackage(view: Intent): String? {
+        val selector = Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, Intent.CATEGORY_APP_CALENDAR)
+        val pkg = packageManager.resolveActivity(selector, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
+        // "android" = the chooser itself (several calendar apps, no default).
+        if (pkg == null || pkg == "android") return null
+        val handles = packageManager.queryIntentActivities(Intent(view).setPackage(pkg), 0).isNotEmpty()
+        return pkg.takeIf { handles }
     }
 }
