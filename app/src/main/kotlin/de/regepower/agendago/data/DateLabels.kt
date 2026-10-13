@@ -13,7 +13,8 @@ import java.util.Date
 
 /**
  * Text for the day and time columns, like the original widget:
- * "Today | 16:00", "Tmrw | ", "24.10. | 09:30", multi-day "Today - Tmrw" across both columns.
+ * "Today | " (all-day), "09:00 | 10:30" (timed today: start | end), "Tmrw | ", "24.10. | 09:30",
+ * multi-day "Today - Tmrw" across both columns.
  */
 class DateLabels(
     private val context: Context,
@@ -41,6 +42,12 @@ class DateLabels(
         val last = event.lastDay(zone)
         if (last > day && last > today) {
             return Label(context.getString(R.string.date_range, dayText, dayText(last)), "", span = true)
+        }
+        // Timed events today: start in the day column, end in the time column ("09:00 | 10:30").
+        if (!event.allDay && day == today && last == today) {
+            val start = timeFormat.format(Date(event.begin))
+            val end = if (event.end > event.begin) timeFormat.format(Date(event.end)) else ""
+            return Label(start, end, span = false)
         }
         // All-day events and events that started on an earlier day show no time.
         val time = if (event.allDay || day < today) "" else timeFormat.format(Date(event.begin))
