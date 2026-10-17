@@ -1123,6 +1123,7 @@ class SettingsActivity : Activity() {
     ): String =
         when {
             st.error == GTasks.NEEDS_CONSENT -> getString(R.string.gtasks_consent)
+            st.error == Ews.AUTH_FAILED -> getString(R.string.ews_auth_failed)
             st.error != null -> getString(R.string.ews_error, st.error)
             st.synced > 0 -> {
                 val flags = DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_ABBREV_ALL
@@ -1362,7 +1363,7 @@ class SettingsActivity : Activity() {
         v.ewsStatus.text = getString(R.string.ews_testing)
         val app = applicationContext
         Thread {
-            val ok = Ews.sync(app).tasks != null
+            val ok = Ews.sync(app, manual = true).tasks != null
             runOnUiThread {
                 if (isFinishing) return@runOnUiThread
                 // A working connection switches the source on.
