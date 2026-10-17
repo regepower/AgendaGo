@@ -84,6 +84,7 @@
     </plurals>
     <string name="ews_not_synced">Not fetched yet: enter the data and tap \"Fetch now\".</string>
     <string name="ews_missing">Enter URL, user and password.</string>
+    <string name="ews_auth_failed">Login rejected. Automatic fetching is paused so the domain account does not get locked. Check the password and tap \"Fetch now\".</string>
     <string name="help_ews">Reads the Tasks folder of your mailbox via Exchange Web Services (Basic or NTLM login). The password is stored encrypted on this phone and never exported. Tapping an Exchange task opens Outlook on the web.</string>
     <string name="btn_install">Install</string>
     <string name="section_appearance">Appearance</string>

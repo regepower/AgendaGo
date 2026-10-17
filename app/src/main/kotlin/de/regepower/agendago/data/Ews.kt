@@ -44,6 +44,10 @@ object Ews {
     private const val KEY_CACHE = "cache"
     private const val KEY_SYNCED = "synced"
     private const val KEY_ERROR = "error"
+    private const val KEY_AUTH_FAILED = "auth_failed"
+
+    /** Error marker: the server rejected the login; automatic fetches pause until the user acts. */
+    const val AUTH_FAILED = "auth"
     private const val KEYSTORE = "AndroidKeyStore"
     private const val ALIAS = "agendago_ews"
     private const val GCM_IV = 12
@@ -127,6 +131,8 @@ object Ews {
                 .remove(KEY_SYNCED)
                 .remove(KEY_ERROR)
         }
+        // New password or account: allow automatic fetches again.
+        if (changed) st.remove(KEY_AUTH_FAILED)
         st.apply()
     }
 
@@ -135,8 +141,17 @@ object Ews {
         return Status(st.getLong(KEY_SYNCED, 0L), cached(context).size, st.getString(KEY_ERROR, null))
     }
 
-    /** Fetches and caches the open tasks. Network: call from a background thread. */
-    fun sync(context: Context): Result {
+    /**
+     * Fetches and caches the open tasks. Network: call from a background thread.
+     * After a rejected login only [manual] fetches ("Fetch now") or a newly saved password try
+     * again: every failed login counts as a bad password in Active Directory, and periodic
+     * retries with an old password would lock the domain account.
+     */
+    fun sync(
+        context: Context,
+        manual: Boolean = false,
+    ): Result {
+        if (!manual && state(context).getBoolean(KEY_AUTH_FAILED, false)) return Result(null, AUTH_FAILED)
         val password = state(context).getString(KEY_PASSWORD, null)?.let(::decrypt)
         val url = url(context)
         val user = user(context)
@@ -148,8 +163,10 @@ object Ews {
                 .putString(KEY_CACHE, toJson(result.tasks))
                 .putLong(KEY_SYNCED, System.currentTimeMillis())
                 .remove(KEY_ERROR)
+                .remove(KEY_AUTH_FAILED)
         } else {
             st.putString(KEY_ERROR, result.error)
+            if (result.error == AUTH_FAILED) st.putBoolean(KEY_AUTH_FAILED, true)
         }
         st.apply()
         return result
@@ -220,7 +237,7 @@ object Ews {
                 HttpURLConnection.HTTP_UNAUTHORIZED -> {
                     // Scheme may have changed on the server: detect again next time.
                     st.edit().remove(KEY_SCHEME).apply()
-                    Result(null, "HTTP 401")
+                    Result(null, AUTH_FAILED)
                 }
                 else -> Result(null, "HTTP ${response.code}" + (soapFault(response.body)?.let { ": $it" } ?: ""))
             }
