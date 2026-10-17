@@ -126,6 +126,7 @@ class SettingsActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        UpdateCheck.onStart(this)
         refreshPermission()
         refreshSources()
     }
