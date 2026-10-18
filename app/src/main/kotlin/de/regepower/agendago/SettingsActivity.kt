@@ -40,6 +40,8 @@ import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.Spinner
@@ -92,6 +94,10 @@ class SettingsActivity : Activity() {
 
     /** Views of the task-sources screen; null while the main screen is shown. */
     private var sources: SourceViews? = null
+
+    /** "Install Tasks & Notes" (hidden once installed) and the "opens the app" choice. */
+    private var ewsInstallBtn: View? = null
+    private var ewsOpenApp: RadioButton? = null
 
     /** OnBackInvokedCallback (API 33+) while the sources screen is open; Any keeps API 31 safe. */
     private var backCallback: Any? = null
@@ -930,6 +936,28 @@ class SettingsActivity : Activity() {
                 listOf(tasksOrg to tasksOrgDetails, openTasks to openTasksDetails, gtasks to gtasksDetails, ews to ewsDetails),
             )
         ewsDetails.addView(button(R.string.btn_gtasks_sync) { testEws(views) }, fullWidth(top = 8))
+        // Exchange tasks can't be created or edited on the phone without a separate app: suggest
+        // one and let the user choose what a tap on a task opens.
+        ewsDetails.addView(secondaryText().apply { setText(R.string.ews_app_hint) }, fullWidth(top = 12))
+        val install = button(R.string.ews_app_install) { openStore(Ews.TASK_APP) }
+        ewsInstallBtn = install
+        ewsDetails.addView(install, fullWidth(top = 8))
+        ewsDetails.addView(secondaryText().apply { setText(R.string.ews_open_label) }, fullWidth(top = 12))
+        val openApp = RadioButton(this).apply { setText(R.string.ews_open_app) }.also { it.id = View.generateViewId() }
+        val openWeb = RadioButton(this).apply { setText(R.string.ews_open_web) }.also { it.id = View.generateViewId() }
+        ewsOpenApp = openApp
+        ewsDetails.addView(
+            RadioGroup(this).apply {
+                addView(openApp)
+                addView(openWeb)
+                check(if (Ews.opensApp(this@SettingsActivity)) openApp.id else openWeb.id)
+                setOnCheckedChangeListener { _, checked ->
+                    Ews.setOpensApp(this@SettingsActivity, checked == openApp.id)
+                    refreshWidgets()
+                }
+            },
+            fullWidth(),
+        )
         // Direct accounts first, then the apps that hold the tasks.
         for (card in listOf(gtasksCard, ewsCard, tasksOrgCard, openTasksCard)) root.addView(card, fullWidth(top = 12))
 
@@ -1102,6 +1130,9 @@ class SettingsActivity : Activity() {
         v.ews.isChecked = prefs.ews
         v.gtasks.isChecked = prefs.gtasks && GTasks.configured(this)
         settingSwitches = false
+        val taskApp = Ews.taskAppInstalled(this)
+        ewsInstallBtn?.visibility = if (taskApp) View.GONE else View.VISIBLE
+        ewsOpenApp?.isEnabled = taskApp
         val account = GTasks.account(this)
         v.gtasksAccount.text = if (account == null) getString(R.string.btn_gaccount_choose) else getString(R.string.gaccount, account)
         val gLists = GTasks.lists(this)

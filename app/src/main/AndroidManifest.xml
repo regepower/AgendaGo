@@ -21,6 +21,8 @@
     <queries>
         <package android:name="org.tasks" />
         <package android:name="org.dmfs.tasks" />
+        <!-- "Tasks & Notes": suggested app for Exchange tasks, opened on tap. -->
+        <package android:name="org.myklos.inote" />
         <!-- The system calendar app, so event taps don't land in Outlook & co. -->
         <intent>
             <action android:name="android.intent.action.MAIN" />
