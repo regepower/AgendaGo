@@ -85,7 +85,7 @@
     <string name="ews_not_synced">Not fetched yet: enter the data and tap \"Fetch now\".</string>
     <string name="ews_missing">Enter URL, user and password.</string>
     <string name="ews_auth_failed">Login rejected. Automatic fetching is paused so the domain account does not get locked. Check the password and tap \"Fetch now\".</string>
-    <string name="help_ews">Reads the Tasks folder of your mailbox via Exchange Web Services (Basic or NTLM login). The password is stored encrypted on this phone and never exported. Tapping an Exchange task opens Outlook on the web.</string>
+    <string name="help_ews">Reads the Tasks folder of your mailbox via Exchange Web Services (Basic or NTLM login). The password is stored encrypted on this phone and never exported. Creating and editing Exchange tasks needs a separate app, e.g. \"Tasks &amp; Notes\" (setup offers the install); a tap on a task opens it, or Outlook on the web (choose in the setup).</string>
     <string name="btn_install">Install</string>
     <string name="section_appearance">Appearance</string>
     <string name="label_font">Font</string>
@@ -175,4 +175,9 @@
     <string name="update_install">Download</string>
     <string name="update_later">Later</string>
     <string name="update_skip">Skip this version</string>
+    <string name="ews_app_hint">Creating and editing Exchange tasks needs a separate app, e.g. \"Tasks &amp; Notes\" (Exchange via ActiveSync, 14-day trial, then a one-time purchase).</string>
+    <string name="ews_app_install">Install Tasks &amp; Notes</string>
+    <string name="ews_open_label">Tapping a task opens</string>
+    <string name="ews_open_app">Tasks &amp; Notes (app)</string>
+    <string name="ews_open_web">Outlook on the web</string>
 </resources>

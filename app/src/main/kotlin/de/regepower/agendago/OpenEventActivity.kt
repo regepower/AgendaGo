@@ -17,8 +17,12 @@ class OpenEventActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val event = intent.data
+        val launch = if (event?.scheme == "launch") packageManager.getLaunchIntentForPackage(event.schemeSpecificPart) else null
         val target =
-            if (event != null && event.authority != CalendarContract.AUTHORITY) {
+            if (launch != null) {
+                // Exchange tasks: open the chosen task app.
+                launch
+            } else if (event != null && event.authority != CalendarContract.AUTHORITY) {
                 // Birthday rows link to the contact.
                 Intent(Intent.ACTION_VIEW, event)
             } else if (event != null) {

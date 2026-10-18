@@ -82,7 +82,7 @@
     <string name="ews_not_synced">Noch nicht abgerufen: Daten eingeben und „Jetzt abrufen“ tippen.</string>
     <string name="ews_missing">URL, Benutzer und Passwort eingeben.</string>
     <string name="ews_auth_failed">Anmeldung abgelehnt. Der automatische Abruf ist pausiert, damit das Domänenkonto nicht gesperrt wird. Passwort prüfen und „Jetzt abrufen“ tippen.</string>
-    <string name="help_ews">Liest den Aufgabenordner deines Postfachs über Exchange Web Services (Anmeldung Basic oder NTLM). Das Passwort liegt verschlüsselt auf diesem Handy und wird nie exportiert. Antippen einer Exchange-Aufgabe öffnet Outlook im Web.</string>
+    <string name="help_ews">Liest den Aufgabenordner deines Postfachs über Exchange Web Services (Anmeldung Basic oder NTLM). Das Passwort liegt verschlüsselt auf diesem Handy und wird nie exportiert. Zum Anlegen und Bearbeiten von Exchange-Aufgaben brauchst du eine eigene App, z. B. „Tasks &amp; Notes“ (die Einrichtung bietet die Installation an); Antippen einer Aufgabe öffnet diese App oder Outlook im Web (wählbar in der Einrichtung).</string>
     <string name="btn_install">Installieren</string>
     <string name="section_appearance">Darstellung</string>
     <string name="label_font">Schriftart</string>
@@ -155,4 +155,9 @@
     <string name="update_install">Herunterladen</string>
     <string name="update_later">Später</string>
     <string name="update_skip">Diese Version überspringen</string>
+    <string name="ews_app_hint">Zum Anlegen und Bearbeiten von Exchange-Aufgaben brauchst du eine eigene App, z. B. „Tasks &amp; Notes“ (Exchange per ActiveSync, 14 Tage Test, dann einmal kaufen).</string>
+    <string name="ews_app_install">Tasks &amp; Notes installieren</string>
+    <string name="ews_open_label">Antippen einer Aufgabe öffnet</string>
+    <string name="ews_open_app">Tasks &amp; Notes (App)</string>
+    <string name="ews_open_web">Outlook im Web</string>
 </resources>

@@ -2,6 +2,7 @@ package de.regepower.agendago.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Xml
@@ -106,6 +107,31 @@ object Ews {
 
     fun hasPassword(context: Context) = state(context).contains(KEY_PASSWORD)
 
+    /** "Tasks & Notes" (iNote): edits Exchange tasks via ActiveSync; suggested in the setup. */
+    const val TASK_APP = "org.myklos.inote"
+    private const val KEY_OPEN = "ews.open"
+
+    @Suppress("DEPRECATION")
+    fun taskAppInstalled(context: Context): Boolean =
+        try {
+            context.packageManager.getPackageInfo(TASK_APP, 0)
+            true
+        } catch (e: PackageManager.NameNotFoundException) {
+            false
+        }
+
+    /** What a tap on an Exchange task opens: the task app (default) or Outlook on the web. */
+    fun opensApp(context: Context) = WidgetPrefs.store(context).getString(KEY_OPEN, "app") != "web"
+
+    fun setOpensApp(
+        context: Context,
+        app: Boolean,
+    ) = WidgetPrefs
+        .store(context)
+        .edit()
+        .putString(KEY_OPEN, if (app) "app" else "web")
+        .apply()
+
     fun configured(context: Context) = url(context).isNotBlank() && user(context).isNotBlank() && hasPassword(context)
 
     fun saveAccount(
@@ -179,7 +205,8 @@ object Ews {
         lastDay: LocalDate,
     ): List<Event> {
         val zone = ZoneId.systemDefault()
-        val link = webLink(url(context))
+        // "launch:<package>" is opened by OpenEventActivity with the app's launcher intent.
+        val link = if (opensApp(context) && taskAppInstalled(context)) "launch:$TASK_APP" else webLink(url(context))
         // Same colour as the Exchange calendar of this mailbox, so tasks match its events.
         val color = SourceColors.exchange(context, user(context), url(context)) ?: COLOR
         return cached(context).mapNotNull { t ->
