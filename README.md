@@ -18,8 +18,10 @@ A calm home-screen agenda: upcoming events, contact birthdays and tasks from dif
 - Save/load all settings as a JSON file, built-in help
 - Font (Standard, Small caps, Serif, Monospace, Casual, Handwriting; system fonts, no extra files), font size and width of the date column
 - Material You colours from the wallpaper, follows light/dark mode
-- Transparent background and "invert colours" for any wallpaper
-- Tap an event to open it in your calendar app
+- Background opacity 0–100 % with square corners, and "invert colours" for any wallpaper
+- Tap an entry to open it: by default in your calendar app, the contact, the task app or Outlook on the web; under *Linked apps* choose the app per source (calendar events, birthdays, each task source; only suitable apps are offered). A calendar app chosen for birthdays or tasks opens at the entry's day
+- Exchange tasks: hint and install button for a task app (e.g. Tasks & Notes); automatic fetches pause after a rejected login so the domain account is not locked
+- Update check against GitHub releases once a day (download via the browser, no install permission; can be switched off in the help)
 - Updates itself when calendar data changes, at midnight and when an event ends – no polling
 - English UI with German translation
 
@@ -33,7 +35,7 @@ A calm home-screen agenda: upcoming events, contact birthdays and tasks from dif
 ## Build
 
 No local Android SDK needed: GitHub Actions runs `lintDebug` + `assembleRelease` on every push.
-The APK is attached to each run as artifact `AgendaGo-release`; tags `v*` create a GitHub release.
+The APK is attached to each run as artifact `AgendaGo-release`. Releases: Actions → *Release* → Run workflow publishes the APK of an existing build as `1.0.<build>` (no rebuild).
 
 Signing uses the repository secrets `KEYSTORE_BASE64` and `KEYSTORE_PASSWORD`
 (optional `KEY_ALIAS`, `KEY_PASSWORD`; without `KEY_ALIAS` the first alias in the keystore is used).
