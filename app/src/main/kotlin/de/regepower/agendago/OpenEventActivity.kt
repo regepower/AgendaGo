@@ -37,7 +37,7 @@ class OpenEventActivity : Activity() {
                         }.build()
                 Intent(Intent.ACTION_VIEW, time)
             }
-        // The app the user picked for this source (settings "Tap opens"), if any.
+        // The app the user picked for this source (settings "Linked apps"), if any.
         val source = intent.getStringExtra(Openers.EXTRA_SOURCE)?.let { key -> Openers.Source.entries.firstOrNull { it.key == key } }
         val chosen = source?.let { Openers.chosenIntent(this, it, target) }
         // Otherwise calendar links go to the device's calendar app (APP_CALENDAR), not to whatever

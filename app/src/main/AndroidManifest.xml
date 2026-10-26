@@ -23,10 +23,22 @@
         <package android:name="org.dmfs.tasks" />
         <!-- "Tasks & Notes": suggested app for Exchange tasks, opened on tap. -->
         <package android:name="org.myklos.inote" />
-        <!-- "Tap opens": list of launchable apps to choose from. -->
+        <!-- "Linked apps": only apps suited for each source (calendar, contacts, tasks, browsers). -->
+        <package android:name="com.google.android.apps.tasks" />
+        <package android:name="com.microsoft.todos" />
+        <package android:name="com.microsoft.office.outlook" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
+            <category android:name="android.intent.category.APP_CONTACTS" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="content" android:host="com.android.contacts" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
         </intent>
         <!-- The system calendar app, so event taps don't land in Outlook & co. -->
         <intent>

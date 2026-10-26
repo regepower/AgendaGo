@@ -192,7 +192,7 @@ object Ews {
         lastDay: LocalDate,
     ): List<Event> {
         val zone = ZoneId.systemDefault()
-        // Default tap: Outlook on the web; another app can be chosen in "Tap opens".
+        // Default tap: Outlook on the web; another app can be chosen in "Linked apps".
         val link = webLink(url(context))
         // Same colour as the Exchange calendar of this mailbox, so tasks match its events.
         val color = SourceColors.exchange(context, user(context), url(context)) ?: COLOR

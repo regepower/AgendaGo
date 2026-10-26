@@ -98,8 +98,10 @@ class SettingsActivity : Activity() {
     /** "Install Tasks & Notes", hidden once installed. */
     private var ewsInstallBtn: View? = null
 
-    /** Rows of the "Tap opens" card, rebuilt when sources or choices change. */
+    /** "Linked apps" card: rows rebuilt on changes, foldable title, open/closed state. */
     private var openersBox: LinearLayout? = null
+    private var openersHead: TextView? = null
+    private var openersExpanded = false
 
     /** OnBackInvokedCallback (API 33+) while the sources screen is open; Any keeps API 31 safe. */
     private var backCallback: Any? = null
@@ -260,19 +262,21 @@ class SettingsActivity : Activity() {
         // Which app a tap on a row opens, per source.
         root.addView(
             card().apply {
-                addView(header(R.string.section_open))
-                addView(secondaryText().apply { setText(R.string.open_hint) }, fullWidth())
+                // Foldable: closed it lists only the sources with a chosen app.
+                val head =
+                    header(R.string.section_open).apply {
+                        minHeight = px(40)
+                        gravity = Gravity.CENTER_VERTICAL
+                        setOnClickListener {
+                            openersExpanded = !openersExpanded
+                            refreshOpeners()
+                        }
+                    }
+                openersHead = head
+                addView(head, fullWidth())
                 val box = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
                 openersBox = box
-                addView(box, fullWidth(top = 4))
-                addView(
-                    button(R.string.open_reset_all) {
-                        Openers.resetAll(this@SettingsActivity)
-                        refreshOpeners()
-                        refreshWidgets()
-                    },
-                    fullWidth(top = 8),
-                )
+                addView(box, fullWidth())
             },
             fullWidth(top = 12),
         )
@@ -961,7 +965,7 @@ class SettingsActivity : Activity() {
             )
         ewsDetails.addView(button(R.string.btn_gtasks_sync) { testEws(views) }, fullWidth(top = 8))
         // Exchange tasks can't be created or edited on the phone without a separate app: suggest
-        // one; which app a tap opens is chosen on the main screen ("Tap opens").
+        // one; which app a tap opens is chosen on the main screen ("Linked apps").
         ewsDetails.addView(secondaryText().apply { setText(R.string.ews_app_hint) }, fullWidth(top = 12))
         val install = button(R.string.ews_app_install) { openStore(Ews.TASK_APP) }
         ewsInstallBtn = install
@@ -1127,29 +1131,23 @@ class SettingsActivity : Activity() {
         if (fixed != edit.text.toString()) edit.setText(fixed)
     }
 
-    /** Sources that can show up in the widget with the current settings. */
-    private fun openerSources(): List<Openers.Source> =
-        buildList {
-            add(Openers.Source.CALENDAR)
-            if (prefs.birthdays) add(Openers.Source.BIRTHDAY)
-            if (prefs.tasks) {
-                if (prefs.gtasks) add(Openers.Source.GTASKS)
-                if (prefs.ews) add(Openers.Source.EWS)
-                if (prefs.tasksOrg) add(Openers.Source.TASKS_ORG)
-                if (prefs.openTasks) add(Openers.Source.OPENTASKS)
-            }
-        }
-
-    /** One row per source: name, chosen app (or "Standard"); tap = choose. */
+    /**
+     * "Linked apps": open = every source with its app (or "Standard") + hint + reset; closed =
+     * only the sources with a chosen app (or one line "all standard").
+     */
     private fun refreshOpeners() {
         val box = openersBox ?: return
         box.removeAllViews()
+        openersHead?.text = getString(if (openersExpanded) R.string.help_open else R.string.help_closed, getString(R.string.section_open))
+        val shown = Openers.Source.entries.filter { openersExpanded || Openers.get(this, it) != null }
+        if (openersExpanded) box.addView(secondaryText().apply { setText(R.string.open_hint) }, fullWidth())
+        if (shown.isEmpty()) box.addView(secondaryText().apply { setText(R.string.open_all_default) }, fullWidth())
         val ripple =
             android.util
                 .TypedValue()
                 .also { theme.resolveAttribute(android.R.attr.selectableItemBackground, it, true) }
                 .resourceId
-        for (source in openerSources()) {
+        for (source in shown) {
             val pkg = Openers.get(this, source)
             val app = pkg?.let { Openers.appLabel(this, it) }
             box.addView(
@@ -1173,13 +1171,23 @@ class SettingsActivity : Activity() {
                 fullWidth(),
             )
         }
+        if (openersExpanded) {
+            box.addView(
+                button(R.string.open_reset_all) {
+                    Openers.resetAll(this)
+                    refreshOpeners()
+                    refreshWidgets()
+                },
+                fullWidth(top = 8),
+            )
+        }
     }
 
-    /** App list for [source]: "Standard (automatic)" first, then all launchable apps with icons. */
+    /** App list for [source]: "Standard (automatic)" first, then the apps suited for it, with icons. */
     private fun pickOpener(source: Openers.Source) {
         val app = applicationContext
         Thread {
-            val apps = Openers.launchableApps(app)
+            val apps = Openers.candidates(app, source)
             runOnUiThread {
                 if (isFinishing) return@runOnUiThread
                 val pm = packageManager
