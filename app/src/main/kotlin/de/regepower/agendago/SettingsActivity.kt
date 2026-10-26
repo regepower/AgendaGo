@@ -9,6 +9,7 @@ import android.appwidget.AppWidgetManager
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
@@ -40,8 +41,6 @@ import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.RadioButton
-import android.widget.RadioGroup
 import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.Spinner
@@ -60,6 +59,7 @@ import de.regepower.agendago.data.Ews
 import de.regepower.agendago.data.FontStyle
 import de.regepower.agendago.data.GTasks
 import de.regepower.agendago.data.OpenTasks
+import de.regepower.agendago.data.Openers
 import de.regepower.agendago.data.PaletteColor
 import de.regepower.agendago.data.TaskList
 import de.regepower.agendago.data.Tasks
@@ -95,9 +95,11 @@ class SettingsActivity : Activity() {
     /** Views of the task-sources screen; null while the main screen is shown. */
     private var sources: SourceViews? = null
 
-    /** "Install Tasks & Notes" (hidden once installed) and the "opens the app" choice. */
+    /** "Install Tasks & Notes", hidden once installed. */
     private var ewsInstallBtn: View? = null
-    private var ewsOpenApp: RadioButton? = null
+
+    /** Rows of the "Tap opens" card, rebuilt when sources or choices change. */
+    private var openersBox: LinearLayout? = null
 
     /** OnBackInvokedCallback (API 33+) while the sources screen is open; Any keeps API 31 safe. */
     private var backCallback: Any? = null
@@ -254,6 +256,27 @@ class SettingsActivity : Activity() {
 
         // Tasks right after the calendars: both decide what the widget lists.
         root.addView(tasksCard(), fullWidth(top = 12))
+
+        // Which app a tap on a row opens, per source.
+        root.addView(
+            card().apply {
+                addView(header(R.string.section_open))
+                addView(secondaryText().apply { setText(R.string.open_hint) }, fullWidth())
+                val box = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+                openersBox = box
+                addView(box, fullWidth(top = 4))
+                addView(
+                    button(R.string.open_reset_all) {
+                        Openers.resetAll(this@SettingsActivity)
+                        refreshOpeners()
+                        refreshWidgets()
+                    },
+                    fullWidth(top = 8),
+                )
+            },
+            fullWidth(top = 12),
+        )
+        refreshOpeners()
 
         root.addView(
             card().apply {
@@ -460,6 +483,7 @@ class SettingsActivity : Activity() {
                 updateCalendarButton()
                 updateTaskControls()
                 refreshSources()
+                refreshOpeners()
                 renderPreview()
             }
         }.start()
@@ -937,27 +961,11 @@ class SettingsActivity : Activity() {
             )
         ewsDetails.addView(button(R.string.btn_gtasks_sync) { testEws(views) }, fullWidth(top = 8))
         // Exchange tasks can't be created or edited on the phone without a separate app: suggest
-        // one and let the user choose what a tap on a task opens.
+        // one; which app a tap opens is chosen on the main screen ("Tap opens").
         ewsDetails.addView(secondaryText().apply { setText(R.string.ews_app_hint) }, fullWidth(top = 12))
         val install = button(R.string.ews_app_install) { openStore(Ews.TASK_APP) }
         ewsInstallBtn = install
         ewsDetails.addView(install, fullWidth(top = 8))
-        ewsDetails.addView(secondaryText().apply { setText(R.string.ews_open_label) }, fullWidth(top = 12))
-        val openApp = RadioButton(this).apply { setText(R.string.ews_open_app) }.also { it.id = View.generateViewId() }
-        val openWeb = RadioButton(this).apply { setText(R.string.ews_open_web) }.also { it.id = View.generateViewId() }
-        ewsOpenApp = openApp
-        ewsDetails.addView(
-            RadioGroup(this).apply {
-                addView(openApp)
-                addView(openWeb)
-                check(if (Ews.opensApp(this@SettingsActivity)) openApp.id else openWeb.id)
-                setOnCheckedChangeListener { _, checked ->
-                    Ews.setOpensApp(this@SettingsActivity, checked == openApp.id)
-                    refreshWidgets()
-                }
-            },
-            fullWidth(),
-        )
         // Direct accounts first, then the apps that hold the tasks.
         for (card in listOf(gtasksCard, ewsCard, tasksOrgCard, openTasksCard)) root.addView(card, fullWidth(top = 12))
 
@@ -1119,6 +1127,112 @@ class SettingsActivity : Activity() {
         if (fixed != edit.text.toString()) edit.setText(fixed)
     }
 
+    /** Sources that can show up in the widget with the current settings. */
+    private fun openerSources(): List<Openers.Source> =
+        buildList {
+            add(Openers.Source.CALENDAR)
+            if (prefs.birthdays) add(Openers.Source.BIRTHDAY)
+            if (prefs.tasks) {
+                if (prefs.gtasks) add(Openers.Source.GTASKS)
+                if (prefs.ews) add(Openers.Source.EWS)
+                if (prefs.tasksOrg) add(Openers.Source.TASKS_ORG)
+                if (prefs.openTasks) add(Openers.Source.OPENTASKS)
+            }
+        }
+
+    /** One row per source: name, chosen app (or "Standard"); tap = choose. */
+    private fun refreshOpeners() {
+        val box = openersBox ?: return
+        box.removeAllViews()
+        val ripple =
+            android.util
+                .TypedValue()
+                .also { theme.resolveAttribute(android.R.attr.selectableItemBackground, it, true) }
+                .resourceId
+        for (source in openerSources()) {
+            val pkg = Openers.get(this, source)
+            val app = pkg?.let { Openers.appLabel(this, it) }
+            box.addView(
+                LinearLayout(this).apply {
+                    gravity = Gravity.CENTER_VERTICAL
+                    minimumHeight = px(44)
+                    setBackgroundResource(ripple)
+                    addView(
+                        TextView(context).apply { setText(source.label) },
+                        LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
+                    )
+                    addView(
+                        TextView(context).apply {
+                            text = app ?: getString(R.string.open_default)
+                            setTextColor(getColor(if (app != null) R.color.md_primary else R.color.md_on_surface_variant))
+                            if (app != null) setTypeface(typeface, Typeface.BOLD)
+                        },
+                    )
+                    setOnClickListener { pickOpener(source) }
+                },
+                fullWidth(),
+            )
+        }
+    }
+
+    /** App list for [source]: "Standard (automatic)" first, then all launchable apps with icons. */
+    private fun pickOpener(source: Openers.Source) {
+        val app = applicationContext
+        Thread {
+            val apps = Openers.launchableApps(app)
+            runOnUiThread {
+                if (isFinishing) return@runOnUiThread
+                val pm = packageManager
+                val size = px(32)
+                val adapter =
+                    object : android.widget.BaseAdapter() {
+                        override fun getCount() = apps.size + 1
+
+                        override fun getItem(position: Int) = if (position == 0) null else apps[position - 1]
+
+                        override fun getItemId(position: Int) = position.toLong()
+
+                        override fun getView(
+                            position: Int,
+                            convertView: View?,
+                            parent: ViewGroup,
+                        ): View {
+                            val row =
+                                (convertView as? TextView) ?: TextView(this@SettingsActivity).apply {
+                                    gravity = Gravity.CENTER_VERTICAL
+                                    minHeight = px(48)
+                                    compoundDrawablePadding = px(12)
+                                    setPadding(px(20), 0, px(20), 0)
+                                    textSize = 16f
+                                }
+                            val item = apps.getOrNull(position - 1)
+                            row.text = item?.first ?: getString(R.string.open_default_long)
+                            val icon =
+                                item?.let {
+                                    try {
+                                        pm.getApplicationIcon(it.second)
+                                    } catch (e: PackageManager.NameNotFoundException) {
+                                        null
+                                    }
+                                }
+                            icon?.setBounds(0, 0, size, size)
+                            row.setCompoundDrawablesRelative(icon, null, null, null)
+                            return row
+                        }
+                    }
+                AlertDialog
+                    .Builder(this)
+                    .setTitle(getString(R.string.open_pick_title, getString(source.label)))
+                    .setAdapter(adapter) { _, which ->
+                        Openers.set(this, source, apps.getOrNull(which - 1)?.second)
+                        refreshOpeners()
+                        refreshWidgets()
+                    }.setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
+        }.start()
+    }
+
     /** Re-reads install/permission state, lists and EWS status into the sources screen. */
     private fun refreshSources() {
         val v = sources ?: return
@@ -1132,7 +1246,6 @@ class SettingsActivity : Activity() {
         settingSwitches = false
         val taskApp = Ews.taskAppInstalled(this)
         ewsInstallBtn?.visibility = if (taskApp) View.GONE else View.VISIBLE
-        ewsOpenApp?.isEnabled = taskApp
         val account = GTasks.account(this)
         v.gtasksAccount.text = if (account == null) getString(R.string.btn_gaccount_choose) else getString(R.string.gaccount, account)
         val gLists = GTasks.lists(this)

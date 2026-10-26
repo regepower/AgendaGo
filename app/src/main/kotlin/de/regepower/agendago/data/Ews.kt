@@ -109,7 +109,6 @@ object Ews {
 
     /** "Tasks & Notes" (iNote): edits Exchange tasks via ActiveSync; suggested in the setup. */
     const val TASK_APP = "org.myklos.inote"
-    private const val KEY_OPEN = "ews.open"
 
     @Suppress("DEPRECATION")
     fun taskAppInstalled(context: Context): Boolean =
@@ -119,18 +118,6 @@ object Ews {
         } catch (e: PackageManager.NameNotFoundException) {
             false
         }
-
-    /** What a tap on an Exchange task opens: the task app (default) or Outlook on the web. */
-    fun opensApp(context: Context) = WidgetPrefs.store(context).getString(KEY_OPEN, "app") != "web"
-
-    fun setOpensApp(
-        context: Context,
-        app: Boolean,
-    ) = WidgetPrefs
-        .store(context)
-        .edit()
-        .putString(KEY_OPEN, if (app) "app" else "web")
-        .apply()
 
     fun configured(context: Context) = url(context).isNotBlank() && user(context).isNotBlank() && hasPassword(context)
 
@@ -205,8 +192,8 @@ object Ews {
         lastDay: LocalDate,
     ): List<Event> {
         val zone = ZoneId.systemDefault()
-        // "launch:<package>" is opened by OpenEventActivity with the app's launcher intent.
-        val link = if (opensApp(context) && taskAppInstalled(context)) "launch:$TASK_APP" else webLink(url(context))
+        // Default tap: Outlook on the web; another app can be chosen in "Tap opens".
+        val link = webLink(url(context))
         // Same colour as the Exchange calendar of this mailbox, so tasks match its events.
         val color = SourceColors.exchange(context, user(context), url(context)) ?: COLOR
         return cached(context).mapNotNull { t ->

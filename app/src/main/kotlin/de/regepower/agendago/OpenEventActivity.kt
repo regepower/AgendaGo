@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.CalendarContract
+import de.regepower.agendago.data.Openers
 
 /**
  * Invisible trampoline for widget taps. Opens the tapped event, or the calendar app at "now"
@@ -17,13 +18,9 @@ class OpenEventActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val event = intent.data
-        val launch = if (event?.scheme == "launch") packageManager.getLaunchIntentForPackage(event.schemeSpecificPart) else null
         val target =
-            if (launch != null) {
-                // Exchange tasks: open the chosen task app.
-                launch
-            } else if (event != null && event.authority != CalendarContract.AUTHORITY) {
-                // Birthday rows link to the contact.
+            if (event != null && event.authority != CalendarContract.AUTHORITY) {
+                // Birthdays link to the contact, tasks to their app or web page.
                 Intent(Intent.ACTION_VIEW, event)
             } else if (event != null) {
                 Intent(Intent.ACTION_VIEW, event)
@@ -40,11 +37,14 @@ class OpenEventActivity : Activity() {
                         }.build()
                 Intent(Intent.ACTION_VIEW, time)
             }
-        // Calendar links go to the device's calendar app (APP_CALENDAR), not to whatever else
-        // registered for calendar URIs (Outlook etc. grab Exchange events otherwise).
-        if (target.data?.authority == CalendarContract.AUTHORITY) calendarPackage(target)?.let { target.setPackage(it) }
+        // The app the user picked for this source (settings "Tap opens"), if any.
+        val source = intent.getStringExtra(Openers.EXTRA_SOURCE)?.let { key -> Openers.Source.entries.firstOrNull { it.key == key } }
+        val chosen = source?.let { Openers.chosenIntent(this, it, target) }
+        // Otherwise calendar links go to the device's calendar app (APP_CALENDAR), not to whatever
+        // else registered for calendar URIs (Outlook etc. grab Exchange events otherwise).
+        if (chosen == null && target.data?.authority == CalendarContract.AUTHORITY) calendarPackage(target)?.let { target.setPackage(it) }
         try {
-            startActivity(target.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            startActivity((chosen ?: target).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         } catch (e: ActivityNotFoundException) {
             // No calendar app installed: nothing sensible to open.
         }

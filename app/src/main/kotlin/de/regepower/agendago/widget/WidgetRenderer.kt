@@ -19,6 +19,7 @@ import de.regepower.agendago.data.DateLabels
 import de.regepower.agendago.data.Event
 import de.regepower.agendago.data.EventRepository
 import de.regepower.agendago.data.FontStyle
+import de.regepower.agendago.data.Openers
 import de.regepower.agendago.data.WidgetPrefs
 
 /** Builds the RemoteViews of one widget. Must not run on the main thread (calendar query). */
@@ -177,7 +178,8 @@ object WidgetRenderer {
                         ?: ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, event.eventId),
                 ).putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, event.begin)
                 .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, event.end)
-                .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, event.allDay),
+                .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, event.allDay)
+                .putExtra(Openers.EXTRA_SOURCE, Openers.sourceOf(event).key),
         )
     }
 
