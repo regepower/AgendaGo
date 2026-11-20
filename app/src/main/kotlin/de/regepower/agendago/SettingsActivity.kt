@@ -65,6 +65,7 @@ import de.regepower.agendago.data.PaletteColor
 import de.regepower.agendago.data.TaskList
 import de.regepower.agendago.data.Tasks
 import de.regepower.agendago.data.WidgetPrefs
+import de.regepower.agendago.data.resolveCalendarIds
 import de.regepower.agendago.widget.CalendarWidgetProvider
 import de.regepower.agendago.widget.NetSync
 import de.regepower.agendago.widget.WidgetRenderer
