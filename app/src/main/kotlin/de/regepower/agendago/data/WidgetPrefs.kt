@@ -25,6 +25,8 @@ enum class FontStyle(
 data class WidgetPrefs(
     /** Empty = all visible calendars. */
     val calendarIds: Set<Long> = emptySet(),
+    /** Identity (type|account|name) of the chosen calendars: finds them again after the IDs change. */
+    val calendarKeys: Set<String> = emptySet(),
     val maxEvents: Int = 7,
     val maxDays: Int = 15,
     val showLocation: Boolean = true,
@@ -82,6 +84,7 @@ data class WidgetPrefs(
                 calendarIds =
                     sp.getStringSet(p + "cals", null)?.mapNotNull { it.toLongOrNull() }?.toSet()
                         ?: d.calendarIds,
+                calendarKeys = sp.getStringSet(p + "calkeys", null) ?: d.calendarKeys,
                 maxEvents = sp.getInt(p + "events", d.maxEvents).coerceIn(EVENTS),
                 maxDays = sp.getInt(p + "days", d.maxDays).coerceIn(DAYS),
                 showLocation = sp.getBoolean(p + "location", d.showLocation),
@@ -123,6 +126,7 @@ data class WidgetPrefs(
             for (p in setOfNotNull(prefix(widgetId), DEFAULT)) {
                 editor
                     .putStringSet(p + "cals", prefs.calendarIds.map { it.toString() }.toSet())
+                    .putStringSet(p + "calkeys", prefs.calendarKeys)
                     .putInt(p + "events", prefs.maxEvents)
                     .putInt(p + "days", prefs.maxDays)
                     .putBoolean(p + "location", prefs.showLocation)

@@ -88,6 +88,7 @@ object WidgetUpdater {
             return
         }
         NetSync.schedule(context)
+        NetSync.catchUpIfStale(context)
         val now = System.currentTimeMillis()
         val zone = ZoneId.systemDefault()
         // "Today"/"Tmrw" labels change at midnight; finished events must disappear at their end.
@@ -208,7 +209,34 @@ class NetSyncJob : JobService() {
 
 object NetSync {
     private const val JOB_ID = 2
+    private const val CATCH_UP_ID = 3
     private const val PERIOD_MS = 30L * 60 * 1000
+
+    /**
+     * The periodic job is often deferred for hours by battery savers (HyperOS). Every widget redraw
+     * (calendar change, midnight, event end, boot) therefore checks the age of the network data
+     * and queues a one-off fetch for the next network window if it is older than the period.
+     */
+    fun catchUpIfStale(context: Context) {
+        val (ews, gtasks) = needed(context)
+        val now = System.currentTimeMillis()
+        val stale =
+            (ews && now - Ews.status(context).synced > PERIOD_MS) ||
+                (gtasks && now - GTasks.status(context).synced > PERIOD_MS)
+        if (!stale) return
+        // At most one catch-up per period, so a failing fetch cannot loop (fetch -> redraw -> fetch).
+        val st = context.getSharedPreferences("netsync", Context.MODE_PRIVATE)
+        if (now - st.getLong("catchup", 0L) < PERIOD_MS) return
+        val jobs = context.getSystemService(JobScheduler::class.java) ?: return
+        if (jobs.getPendingJob(CATCH_UP_ID) != null) return
+        st.edit().putLong("catchup", now).apply()
+        jobs.schedule(
+            JobInfo
+                .Builder(CATCH_UP_ID, ComponentName(context, NetSyncJob::class.java))
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                .build(),
+        )
+    }
 
     /** Which network sources any placed widget uses (and that are set up). */
     private fun needed(context: Context): Pair<Boolean, Boolean> {
@@ -229,7 +257,8 @@ object NetSync {
         force: Boolean = false,
     ) {
         val (ews, gtasks) = needed(context)
-        if ((ews || force) && Ews.configured(context)) Ews.sync(context)
+        // Manual refresh also retries after a failed login (the latch only stops automatic retries).
+        if ((ews || force) && Ews.configured(context)) Ews.sync(context, manual = force)
         if ((gtasks || force) && GTasks.configured(context)) GTasks.sync(context)
         WidgetUpdater.updateAll(context)
     }

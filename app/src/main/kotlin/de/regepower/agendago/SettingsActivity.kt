@@ -37,6 +37,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.CompoundButton
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -386,16 +387,26 @@ class SettingsActivity : Activity() {
         if (widgetId == null && manager.isRequestPinAppWidgetSupported) {
             root.addView(button(R.string.btn_add_widget) { pinWidget() }, fullWidth(top = 12))
         }
-        root.addView(
-            button(R.string.btn_apply) { apply() }.also { style(it, R.color.md_primary, R.color.md_on_primary) },
-            fullWidth(top = 8),
-        )
+        // Room below the last card for the floating apply button.
+        root.setPadding(root.paddingLeft, root.paddingTop, root.paddingRight, root.paddingBottom + px(72))
 
         updateCalendarButton()
         renderPreview()
-        return ScrollView(this).apply {
+        // Apply floats at the bottom so it is never scrolled out of sight.
+        val applyBtn =
+            button(R.string.btn_apply) { apply() }.also {
+                style(it, R.color.md_primary, R.color.md_on_primary)
+                it.elevation = px(6).toFloat()
+            }
+        return FrameLayout(this).apply {
             fitsSystemWindows = true
-            addView(root)
+            addView(ScrollView(context).apply { addView(root) })
+            addView(
+                applyBtn,
+                FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM).apply {
+                    setMargins(px(16), 0, px(16), px(12))
+                },
+            )
         }
     }
 
@@ -481,6 +492,11 @@ class SettingsActivity : Activity() {
             runOnUiThread {
                 if (isFinishing) return@runOnUiThread
                 calendars = cals
+                // Re-find chosen calendars after an ID change; also fills the keys of older setups.
+                if (prefs.calendarIds.isNotEmpty() && cals.isNotEmpty()) {
+                    val ids = resolveCalendarIds(prefs, cals)
+                    prefs = prefs.copy(calendarIds = ids, calendarKeys = cals.filter { it.id in ids }.map { it.key }.toSet())
+                }
                 previewEvents = events
                 taskLists = lists
                 openTaskLists = otLists
@@ -1577,7 +1593,8 @@ class SettingsActivity : Activity() {
         }
         val items = calendars.map { PickItem(it.id, prettyName(it.name), prettyAccount(it.account), it.color, R.drawable.dot) }
         multiPicker(R.string.pick_calendars_title, items, prefs.calendarIds) { ids ->
-            prefs = prefs.copy(calendarIds = ids)
+            val keys = calendars.filter { it.id in ids }.map { it.key }.toSet()
+            prefs = prefs.copy(calendarIds = ids, calendarKeys = keys)
             updateCalendarButton()
             loadData()
         }

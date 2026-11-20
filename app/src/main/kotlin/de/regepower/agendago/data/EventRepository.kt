@@ -18,6 +18,24 @@ data class CalendarInfo(
     val accountType: String = "",
 ) {
     val label: String get() = if (account.isBlank() || account == name) name else "$name ($account)"
+
+    /** Survives a re-sync that recreates the calendar with a new ID. */
+    val key: String get() = "$accountType|$account|$name"
+}
+
+/**
+ * Chosen calendar IDs that still exist, plus calendars found again by their identity after an
+ * account re-sync (new IDs) or on a new phone. Empty stays empty (= all).
+ */
+fun resolveCalendarIds(
+    prefs: WidgetPrefs,
+    calendars: List<CalendarInfo>,
+): Set<Long> {
+    if (prefs.calendarIds.isEmpty() && prefs.calendarKeys.isEmpty()) return emptySet()
+    val found =
+        calendars.filter { it.id in prefs.calendarIds || it.key in prefs.calendarKeys }.map { it.id }.toSet()
+    // Nothing found at all: rather keep the old IDs than suddenly show every calendar.
+    return found.ifEmpty { prefs.calendarIds }
 }
 
 /** One occurrence (recurrences are already expanded by the Instances table). */
@@ -118,7 +136,7 @@ class EventRepository(
                 Instances.EVENT_LOCATION,
                 Instances.DISPLAY_COLOR,
             )
-        val ids = prefs.calendarIds.toList()
+        val ids = resolveCalendarIds(prefs, calendars()).toList()
         val selection =
             buildString {
                 // "All" = calendars visible in the calendar app; an explicit choice wins over visibility.

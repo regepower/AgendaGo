@@ -13,7 +13,7 @@ A calm home-screen agenda: upcoming events, contact birthdays and tasks from dif
   - Tasks.org 15.12+ (Google Tasks, Microsoft To Do, CalDAV), selectable lists
   - OpenTasks (CalDAV via DAVx⁵), selectable lists
   - Google Tasks directly with the Google account on the phone (AccountManager token, read-only scope; needs an Android OAuth client in your Google Cloud project)
-  - On-premises Exchange via EWS (Basic or NTLMv2 login, fetched every 30 minutes, password encrypted with the Android Keystore and never exported)
+  - On-premises Exchange via EWS (Basic or NTLMv2 login, fetched every 30 minutes with catch-up after battery-saver delays, password encrypted with the Android Keystore and never exported)
 - Change calendar colours: Google palette synced to Google, own colours for Exchange/local calendars kept on the device
 - Save/load all settings as a JSON file, built-in help
 - Font (Standard, Small caps, Serif, Monospace, Casual, Handwriting; system fonts, no extra files), font size and width of the date column
